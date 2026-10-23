@@ -92,9 +92,10 @@ public class BudgetService {
      * Only counts EXPENSE transactions.
      */
     private BigDecimal calculateSpent(User user, String category, YearMonth month) {
-        return transactionRepository.sumAmountByUserAndTypeAndDateRange(
+        return transactionRepository.sumAmountByUserAndTypeAndCategoryAndDateRange(
                 user.getId(),
                 TransactionType.EXPENSE,
+                category.toUpperCase(),
                 month.atDay(1),
                 month.atEndOfMonth()
         );

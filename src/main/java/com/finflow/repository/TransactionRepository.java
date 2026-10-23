@@ -37,6 +37,20 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
             @Param("endDate") LocalDate endDate);
 
     /**
+     * Sum of amounts for a user, type, category, and date range.
+     */
+    @Query("SELECT COALESCE(SUM(t.amount), 0) FROM Transaction t " +
+           "WHERE t.user.id = :userId AND t.type = :type " +
+           "AND t.category = :category " +
+           "AND t.transactionDate BETWEEN :startDate AND :endDate")
+    BigDecimal sumAmountByUserAndTypeAndCategoryAndDateRange(
+            @Param("userId") Long userId,
+            @Param("type") TransactionType type,
+            @Param("category") String category,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate);
+
+    /**
      * Category-wise sum of amounts for a user, type, and date range.
      * Returns rows of [category, totalAmount].
      */

@@ -85,8 +85,8 @@ class BudgetServiceTest {
     void shouldCreateBudget() {
         when(budgetMapper.toEntity(request, user)).thenReturn(budget);
         when(budgetRepository.save(budget)).thenReturn(budget);
-        when(transactionRepository.sumAmountByUserAndTypeAndDateRange(
-                eq(1L), eq(TransactionType.EXPENSE), any(LocalDate.class), any(LocalDate.class)
+        when(transactionRepository.sumAmountByUserAndTypeAndCategoryAndDateRange(
+                eq(1L), eq(TransactionType.EXPENSE), eq("FOOD"), any(LocalDate.class), any(LocalDate.class)
         )).thenReturn(new BigDecimal("200.00"));
         when(budgetMapper.toResponse(budget, new BigDecimal("200.00"))).thenReturn(response);
 
@@ -105,8 +105,8 @@ class BudgetServiceTest {
     @DisplayName("Should get all budgets for user with spent amounts")
     void shouldGetAllBudgets() {
         when(budgetRepository.findByUserId(1L)).thenReturn(List.of(budget));
-        when(transactionRepository.sumAmountByUserAndTypeAndDateRange(
-                eq(1L), eq(TransactionType.EXPENSE), any(LocalDate.class), any(LocalDate.class)
+        when(transactionRepository.sumAmountByUserAndTypeAndCategoryAndDateRange(
+                eq(1L), eq(TransactionType.EXPENSE), eq("FOOD"), any(LocalDate.class), any(LocalDate.class)
         )).thenReturn(new BigDecimal("200.00"));
         when(budgetMapper.toResponse(budget, new BigDecimal("200.00"))).thenReturn(response);
 
