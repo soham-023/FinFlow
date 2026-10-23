@@ -29,6 +29,7 @@ public class Transaction {
     private String category;
 
     private String description;
+    
 
     @Column(name = "transaction_date", nullable = false)
     private LocalDate transactionDate;
@@ -44,6 +45,7 @@ public class Transaction {
     }
 
     public Transaction(Long id, BigDecimal amount, TransactionType type, String category,
+                       
                        String description, LocalDate transactionDate, LocalDateTime createdAt, User user) {
         this.id = id;
         this.amount = amount;
