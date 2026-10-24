@@ -8,6 +8,7 @@ import com.finflow.exception.DuplicateResourceException;
 import com.finflow.service.AuthService;
 import com.finflow.service.JwtService;
 import org.junit.jupiter.api.DisplayName;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -21,6 +22,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 
 @WebMvcTest(AuthController.class)
 @AutoConfigureMockMvc(addFilters = false)
@@ -40,6 +42,7 @@ class AuthControllerTest {
 
     @MockBean
     private com.finflow.repository.UserRepository userRepository;
+    
 
     @Test
     @DisplayName("POST /api/auth/register should return 201 on success")
@@ -48,6 +51,7 @@ class AuthControllerTest {
         AuthResponse response = new AuthResponse("jwt.token.here", "alex@example.com", "Alex Smith");
 
         when(authService.register(any(RegisterRequest.class))).thenReturn(response);
+        
 
         mockMvc.perform(post("/api/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -56,6 +60,7 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.token").value("jwt.token.here"))
                 .andExpect(jsonPath("$.email").value("alex@example.com"))
                 .andExpect(jsonPath("$.name").value("Alex Smith"));
+        
     }
 
     @Test
