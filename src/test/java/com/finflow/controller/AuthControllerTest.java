@@ -77,23 +77,28 @@ class AuthControllerTest {
 
     @Test
     @DisplayName("POST /api/auth/register with duplicate email should return 409")
-    void shouldReturnConflictOnDuplicateEmail() throws Exception {
+    
+    void shouldReturnConflictOnDuplicateEmail() throws Exception 
+    {
         RegisterRequest request = new RegisterRequest("Alex Smith", "alex@example.com", "password123");
 
         when(authService.register(any(RegisterRequest.class)))
                 .thenThrow(new DuplicateResourceException("Email already registered: alex@example.com"));
+        
 
         mockMvc.perform(post("/api/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.message").value("Email already registered: alex@example.com"));
+        
     }
 
     @Test
     @DisplayName("POST /api/auth/login should return 200 with JWT token")
     void shouldLoginSuccessfully() throws Exception {
         AuthRequest request = new AuthRequest("alex@example.com", "password123");
+        
         AuthResponse response = new AuthResponse("jwt.token.here", "alex@example.com", "Alex Smith");
 
         when(authService.login(any(AuthRequest.class))).thenReturn(response);
@@ -104,5 +109,6 @@ class AuthControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.token").value("jwt.token.here"))
                 .andExpect(jsonPath("$.email").value("alex@example.com"));
+        
     }
 }
