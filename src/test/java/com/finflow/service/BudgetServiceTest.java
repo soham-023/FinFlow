@@ -16,6 +16,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
 import org.springframework.security.access.AccessDeniedException;
 
 import java.math.BigDecimal;
@@ -39,12 +40,14 @@ class BudgetServiceTest {
 
     @Mock
     private BudgetMapper budgetMapper;
+    
 
     @Mock
     private TransactionRepository transactionRepository;
 
     @InjectMocks
     private BudgetService budgetService;
+    
 
     private User user;
     private Budget budget;
@@ -58,6 +61,7 @@ class BudgetServiceTest {
                 .name("Alex Smith")
                 .email("alex@example.com")
                 .build();
+        
 
         request = new BudgetRequest("FOOD", new BigDecimal("500.00"), "2026-10");
 
@@ -67,6 +71,7 @@ class BudgetServiceTest {
                 .monthlyLimit(new BigDecimal("500.00"))
                 .month(YearMonth.of(2026, 10))
                 .user(user)
+            
                 .createdAt(LocalDateTime.now())
                 .build();
 
@@ -76,6 +81,7 @@ class BudgetServiceTest {
                 new BigDecimal("500.00"),
                 "2026-10",
                 new BigDecimal("200.00"),
+            
                 new BigDecimal("300.00")
         );
     }
@@ -88,6 +94,7 @@ class BudgetServiceTest {
         when(transactionRepository.sumAmountByUserAndTypeAndCategoryAndDateRange(
                 eq(1L), eq(TransactionType.EXPENSE), eq("FOOD"), any(LocalDate.class), any(LocalDate.class)
         )).thenReturn(new BigDecimal("200.00"));
+        
         when(budgetMapper.toResponse(budget, new BigDecimal("200.00"))).thenReturn(response);
 
         BudgetResponse result = budgetService.create(request, user);
@@ -99,6 +106,7 @@ class BudgetServiceTest {
         assertThat(result.remaining()).isEqualByComparingTo(new BigDecimal("300.00"));
 
         verify(budgetRepository).save(budget);
+        
     }
 
     @Test
