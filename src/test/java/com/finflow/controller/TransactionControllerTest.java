@@ -25,11 +25,14 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
+
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -39,6 +42,7 @@ class TransactionControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
+    
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -51,6 +55,7 @@ class TransactionControllerTest {
 
     @MockBean
     private UserRepository userRepository;
+    
 
     private User user;
 
@@ -65,6 +70,7 @@ class TransactionControllerTest {
         UsernamePasswordAuthenticationToken auth =
                 new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(auth);
+        
     }
 
     @AfterEach
@@ -77,6 +83,7 @@ class TransactionControllerTest {
     void shouldCreateTransaction() throws Exception {
         TransactionRequest request = new TransactionRequest(
                 new BigDecimal("250.00"),
+           
                 TransactionType.EXPENSE,
                 "FOOD",
                 "Lunch with colleagues",
