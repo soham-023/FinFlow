@@ -13,12 +13,15 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
+
 @Repository
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
 
     Page<Transaction> findByUserId(Long userId, Pageable pageable);
+    
 
     Page<Transaction> findByUserIdAndType(Long userId, TransactionType type, Pageable pageable);
+    
 
     Page<Transaction> findByUserIdAndCategory(Long userId, String category, Pageable pageable);
 
@@ -30,9 +33,11 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
     @Query("SELECT COALESCE(SUM(t.amount), 0) FROM Transaction t " +
            "WHERE t.user.id = :userId AND t.type = :type " +
            "AND t.transactionDate BETWEEN :startDate AND :endDate")
+    
     BigDecimal sumAmountByUserAndTypeAndDateRange(
             @Param("userId") Long userId,
             @Param("type") TransactionType type,
+        
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate);
 
