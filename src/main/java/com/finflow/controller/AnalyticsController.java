@@ -5,7 +5,9 @@ import com.finflow.dto.MonthlySummaryResponse;
 import com.finflow.entity.User;
 import com.finflow.service.AnalyticsService;
 import io.swagger.v3.oas.annotations.Operation;
+
 import io.swagger.v3.oas.annotations.tags.Tag;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -38,6 +40,7 @@ public class AnalyticsController {
 
         YearMonth yearMonth = (month != null) ? YearMonth.parse(month) : YearMonth.now();
         MonthlySummaryResponse summary = analyticsService.getMonthlySummary(user, yearMonth);
+        
         return ResponseEntity.ok(summary);
     }
 
@@ -46,8 +49,10 @@ public class AnalyticsController {
     public ResponseEntity<List<CategorySummaryResponse>> getCategorySummary(
             @AuthenticationPrincipal User user,
             @RequestParam(required = false) String month) {
+        
 
         YearMonth yearMonth = (month != null) ? YearMonth.parse(month) : YearMonth.now();
+        
         List<CategorySummaryResponse> summary = analyticsService.getCategorySummary(user, yearMonth);
         return ResponseEntity.ok(summary);
     }
