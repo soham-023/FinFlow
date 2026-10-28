@@ -26,6 +26,7 @@ public class JwtService {
     @Value("${jwt.expiration}")
     private long jwtExpiration;
     
+    
 
     public String extractUsername(String token) {
         
@@ -33,6 +34,7 @@ public class JwtService {
     }
 
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
+        
         final Claims claims = extractAllClaims(token);
         return claimsResolver.apply(claims);
     }
@@ -64,11 +66,13 @@ public class JwtService {
 
     private Date extractExpiration(String token) {
         return extractClaim(token, Claims::getExpiration);
+        
     }
 
     private Claims extractAllClaims(String token) {
         return Jwts.parser()
                 .verifyWith(getSigningKey())
+            
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
