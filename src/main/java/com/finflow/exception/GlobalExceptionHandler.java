@@ -77,6 +77,7 @@ public class GlobalExceptionHandler {
                 ex.getMessage(),
             
                 LocalDateTime.now(),
+            
                 null
         );
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
@@ -86,8 +87,10 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
         ex.printStackTrace();
         ErrorResponse error = new ErrorResponse(
+            
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 ex.getMessage() != null ? ex.getMessage() : "An unexpected error occurred",
+            
                 LocalDateTime.now(),
                 null
         );
