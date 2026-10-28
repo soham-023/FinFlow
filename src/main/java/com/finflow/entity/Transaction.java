@@ -39,6 +39,7 @@ public class Transaction {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
+    
     private User user;
 
     public Transaction() {
@@ -53,6 +54,7 @@ public class Transaction {
         this.category = category;
         this.description = description;
         this.transactionDate = transactionDate;
+        
         this.createdAt = createdAt;
         this.user = user;
     }
@@ -81,6 +83,7 @@ public class Transaction {
     }
 
     public TransactionType getType() {
+        
         return type;
     }
 
@@ -94,6 +97,7 @@ public class Transaction {
 
     public void setCategory(String category) {
         this.category = category;
+        
     }
 
     public String getDescription() {
@@ -109,6 +113,7 @@ public class Transaction {
     }
 
     public void setTransactionDate(LocalDate transactionDate) {
+        
         this.transactionDate = transactionDate;
     }
 
@@ -133,6 +138,7 @@ public class Transaction {
     }
 
     public static class Builder {
+        
         private Long id;
         private BigDecimal amount;
         private TransactionType type;
@@ -148,6 +154,7 @@ public class Transaction {
         }
 
         public Builder amount(BigDecimal amount) {
+            
             this.amount = amount;
             return this;
         }
@@ -184,6 +191,7 @@ public class Transaction {
 
         public Transaction build() {
             return new Transaction(id, amount, type, category, description, transactionDate, createdAt, user);
+            
         }
     }
 }
