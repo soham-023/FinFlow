@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+
 import java.time.YearMonth;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -29,6 +30,7 @@ public class BudgetService {
     private final TransactionRepository transactionRepository;
 
     public BudgetService(BudgetRepository budgetRepository,
+                         
                          BudgetMapper budgetMapper,
                          TransactionRepository transactionRepository) {
         this.budgetRepository = budgetRepository;
@@ -40,11 +42,14 @@ public class BudgetService {
      * Create a new budget for a category and month.
      */
     @Transactional
+    
     public BudgetResponse create(BudgetRequest request, User user) {
         Budget budget = budgetMapper.toEntity(request, user);
+        
         Budget saved = budgetRepository.save(budget);
 
         BigDecimal spent = calculateSpent(user, saved.getCategory(), saved.getMonth());
+        
         return budgetMapper.toResponse(saved, spent);
     }
 
@@ -66,6 +71,7 @@ public class BudgetService {
     public List<BudgetResponse> getByMonth(User user, YearMonth month) {
         return budgetRepository.findByUserIdAndMonth(user.getId(), month).stream()
                 .map(budget -> {
+                    
                     BigDecimal spent = calculateSpent(user, budget.getCategory(), budget.getMonth());
                     return budgetMapper.toResponse(budget, spent);
                 })
@@ -79,6 +85,7 @@ public class BudgetService {
     public void delete(Long id, User user) {
         Budget budget = budgetRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Budget not found with id: " + id));
+        
 
         if (!budget.getUser().getId().equals(user.getId())) {
             throw new AccessDeniedException("You do not have permission to delete this budget");
