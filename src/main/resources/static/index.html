@@ -1,0 +1,1287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FinFlow — Personal Finance & Expense Tracker 💰</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4f46e5',
+                        primaryHover: '#4338ca',
+                        emerald: {
+                            500: '#10b981',
+                            600: '#059669',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(229, 231, 235, 0.8);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col font-sans">
+
+    <!-- Top Navigation Bar -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center text-white text-xl shadow-md">
+                    <i class="fa-solid fa-wallet"></i>
+                </div>
+                <div>
+                    <span class="text-xl font-bold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">FinFlow</span>
+                    <span class="text-xs bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-full font-semibold ml-2 border border-indigo-100">Live Dashboard</span>
+                </div>
+            </div>
+
+            <!-- Navigation Links -->
+            <nav class="hidden md:flex items-center space-x-1" id="nav-tabs">
+                <button onclick="switchTab('dashboard')" id="tab-btn-dashboard" class="px-3 py-2 rounded-lg text-sm font-medium text-indigo-600 bg-indigo-50 transition">
+                    <i class="fa-solid fa-chart-pie mr-1.5"></i> Dashboard
+                </button>
+                <button onclick="switchTab('transactions')" id="tab-btn-transactions" class="px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">
+                    <i class="fa-solid fa-receipt mr-1.5"></i> Transactions
+                </button>
+                <button onclick="switchTab('budgets')" id="tab-btn-budgets" class="px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">
+                    <i class="fa-solid fa-bullseye mr-1.5"></i> Budgets & Alerts
+                </button>
+                <button onclick="switchTab('guide')" id="tab-btn-guide" class="px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">
+                    <i class="fa-solid fa-graduation-cap mr-1.5"></i> Architecture & Guide
+                </button>
+                <a href="/swagger-ui.html" target="_blank" class="px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:text-indigo-600 hover:bg-slate-100 transition">
+                    <i class="fa-solid fa-code mr-1.5"></i> Swagger API <i class="fa-solid fa-arrow-up-right-from-square text-xs ml-1"></i>
+                </a>
+            </nav>
+
+            <!-- User Auth status & buttons -->
+            <div class="flex items-center space-x-3">
+                <div id="user-profile-badge" class="hidden items-center space-x-2 text-sm bg-slate-100 py-1.5 px-3 rounded-full border border-slate-200">
+                    <div class="w-6 h-6 rounded-full bg-indigo-600 text-white flex items-center justify-center text-xs font-bold" id="user-avatar">U</div>
+                    <span id="user-display-name" class="font-medium text-slate-700">User</span>
+                    <button onclick="logout()" title="Logout" class="text-slate-400 hover:text-rose-500 transition ml-1">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                    </button>
+                </div>
+                <div id="auth-buttons" class="flex items-center space-x-2">
+                    <button onclick="openAuthModal('login')" class="px-3.5 py-1.5 text-sm font-semibold text-slate-700 hover:text-indigo-600 rounded-lg hover:bg-slate-100 transition">Sign In</button>
+                    <button onclick="openAuthModal('register')" class="px-3.5 py-1.5 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-sm transition">Sign Up</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Global Alert Bar (Budget Alerts) -->
+    <div id="budget-alert-container" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4 hidden">
+        <!-- Injected dynamically -->
+    </div>
+
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full">
+
+        <!-- ========================================== -->
+        <!-- TAB 1: DASHBOARD OVERVIEW                 -->
+        <!-- ========================================== -->
+        <section id="view-dashboard" class="space-y-6">
+            <!-- Hero / Welcome banner -->
+            <div class="rounded-2xl p-6 bg-gradient-to-r from-indigo-900 via-indigo-800 to-violet-900 text-white shadow-lg relative overflow-hidden">
+                <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h1 class="text-2xl font-bold">Welcome to <span class="text-indigo-300">FinFlow</span> 💰</h1>
+                        <p class="text-indigo-200 text-sm mt-1 max-w-xl">
+                            Track daily expenses, record salaries, set monthly category budgets, and inspect financial analytics in real-time.
+                        </p>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <div class="bg-indigo-800/80 px-3 py-2 rounded-xl border border-indigo-700/50 text-xs">
+                            <span class="text-indigo-300 block">Active Month:</span>
+                            <input type="month" id="selected-month" class="bg-transparent font-bold text-white outline-none cursor-pointer text-sm" value="2026-10" onchange="refreshAllData()">
+                        </div>
+                        <button onclick="refreshAllData()" class="bg-indigo-600 hover:bg-indigo-500 text-white p-2.5 rounded-xl transition shadow-sm" title="Refresh Data">
+                            <i class="fa-solid fa-arrows-rotate"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="absolute -right-10 -bottom-10 w-64 h-64 bg-indigo-500/10 rounded-full blur-2xl"></div>
+            </div>
+
+            <!-- KPI Metric Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <!-- Total Income -->
+                <div class="glass-card rounded-2xl p-5 shadow-sm border border-slate-200 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Income</p>
+                        <h3 class="text-2xl font-extrabold text-emerald-600 mt-1" id="kpi-income">$0.00</h3>
+                        <p class="text-xs text-slate-400 mt-1">Salary & Freelance</p>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl">
+                        <i class="fa-solid fa-arrow-trend-up"></i>
+                    </div>
+                </div>
+
+                <!-- Total Expense -->
+                <div class="glass-card rounded-2xl p-5 shadow-sm border border-slate-200 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Expenses</p>
+                        <h3 class="text-2xl font-extrabold text-rose-600 mt-1" id="kpi-expense">$0.00</h3>
+                        <p class="text-xs text-slate-400 mt-1">Food, bills & travel</p>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-xl">
+                        <i class="fa-solid fa-arrow-trend-down"></i>
+                    </div>
+                </div>
+
+                <!-- Net Savings -->
+                <div class="glass-card rounded-2xl p-5 shadow-sm border border-slate-200 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Net Savings</p>
+                        <h3 class="text-2xl font-extrabold text-indigo-600 mt-1" id="kpi-savings">$0.00</h3>
+                        <p class="text-xs text-slate-400 mt-1">Income minus spending</p>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl">
+                        <i class="fa-solid fa-piggy-bank"></i>
+                    </div>
+                </div>
+
+                <!-- Active Budgets -->
+                <div class="glass-card rounded-2xl p-5 shadow-sm border border-slate-200 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Active Budgets</p>
+                        <h3 class="text-2xl font-extrabold text-amber-600 mt-1" id="kpi-budget-count">0</h3>
+                        <p class="text-xs text-slate-400 mt-1" id="kpi-budget-status">Tracking limits</p>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl">
+                        <i class="fa-solid fa-scale-balanced"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Bar Chart: Income vs Expense -->
+                <div class="lg:col-span-2 glass-card rounded-2xl p-5 shadow-sm border border-slate-200">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-bold text-slate-800 text-base">Monthly Cashflow (Income vs Expense)</h3>
+                        <span class="text-xs text-slate-400">Real-time DB query</span>
+                    </div>
+                    <div class="h-64 relative">
+                        <canvas id="cashflowChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Doughnut Chart: Category Breakdown -->
+                <div class="glass-card rounded-2xl p-5 shadow-sm border border-slate-200">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-bold text-slate-800 text-base">Spending by Category</h3>
+                        <span class="text-xs text-slate-400">Breakdown</span>
+                    </div>
+                    <div class="h-64 relative flex items-center justify-center">
+                        <canvas id="categoryChart"></canvas>
+                        <p id="no-category-data" class="text-slate-400 text-sm hidden">No expenses logged yet</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Transactions & Quick Action -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Left: Recent Transactions Table -->
+                <div class="lg:col-span-2 glass-card rounded-2xl p-5 shadow-sm border border-slate-200">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-bold text-slate-800 text-base">Recent Transactions</h3>
+                        <button onclick="switchTab('transactions')" class="text-xs text-indigo-600 hover:text-indigo-800 font-semibold">View All &rarr;</button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm text-slate-600">
+                            <thead class="bg-slate-50 text-xs uppercase font-semibold text-slate-400 border-b border-slate-100">
+                                <tr>
+                                    <th class="py-3 px-4">Date</th>
+                                    <th class="py-3 px-4">Category</th>
+                                    <th class="py-3 px-4">Description</th>
+                                    <th class="py-3 px-4 text-right">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recent-transactions-body" class="divide-y divide-slate-100">
+                                <tr>
+                                    <td colspan="4" class="text-center py-6 text-slate-400">Loading transactions...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Right: Quick Add Transaction Card -->
+                <div class="glass-card rounded-2xl p-5 shadow-sm border border-slate-200">
+                    <h3 class="font-bold text-slate-800 text-base mb-1">⚡ Quick Add Entry</h3>
+                    <p class="text-xs text-slate-500 mb-4">Post directly to <code>POST /api/transactions</code></p>
+
+                    <form id="quick-transaction-form" onsubmit="handleQuickAddTransaction(event)" class="space-y-3">
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="text-xs font-medium text-slate-600 block mb-1">Type</label>
+                                <select id="quick-type" class="w-full text-sm bg-slate-50 border border-slate-200 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 outline-none">
+                                    <option value="EXPENSE">Expense</option>
+                                    <option value="INCOME">Income</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-xs font-medium text-slate-600 block mb-1">Amount ($)</label>
+                                <input type="number" step="0.01" id="quick-amount" placeholder="0.00" required class="w-full text-sm bg-slate-50 border border-slate-200 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 outline-none font-semibold">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="text-xs font-medium text-slate-600 block mb-1">Category</label>
+                            <select id="quick-category" class="w-full text-sm bg-slate-50 border border-slate-200 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 outline-none">
+                                <option value="FOOD">🍔 Food & Groceries</option>
+                                <option value="TRAVEL">🚗 Travel & Transport</option>
+                                <option value="SHOPPING">🛍️ Shopping</option>
+                                <option value="BILLS">💡 Bills & Utilities</option>
+                                <option value="SALARY">💼 Salary</option>
+                                <option value="FREELANCE">💻 Freelance</option>
+                                <option value="INVESTMENT">📈 Investment</option>
+                                <option value="OTHER">📦 Other</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="text-xs font-medium text-slate-600 block mb-1">Description (Optional)</label>
+                            <input type="text" id="quick-desc" placeholder="e.g. Lunch at Cafe" class="w-full text-sm bg-slate-50 border border-slate-200 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 outline-none">
+                        </div>
+
+                        <div>
+                            <label class="text-xs font-medium text-slate-600 block mb-1">Date</label>
+                            <input type="date" id="quick-date" required class="w-full text-sm bg-slate-50 border border-slate-200 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 outline-none">
+                        </div>
+
+                        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 rounded-lg text-sm transition shadow-sm flex items-center justify-center space-x-2">
+                            <i class="fa-solid fa-plus"></i>
+                            <span>Save Transaction</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- TAB 2: FULL TRANSACTIONS VIEW             -->
+        <!-- ========================================== -->
+        <section id="view-transactions" class="space-y-6 hidden">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-900">All Transactions</h2>
+                    <p class="text-slate-500 text-sm">Browse, filter, and manage your full transaction history</p>
+                </div>
+                <button onclick="document.getElementById('add-tx-modal').classList.remove('hidden')" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-4 py-2 rounded-xl text-sm transition shadow-sm flex items-center space-x-2">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>New Transaction</span>
+                </button>
+            </div>
+
+            <!-- Filters -->
+            <div class="glass-card rounded-2xl p-4 shadow-sm border border-slate-200 flex flex-wrap items-center gap-3">
+                <div class="flex items-center space-x-2">
+                    <span class="text-xs font-semibold text-slate-500">Filter Type:</span>
+                    <select id="filter-type" onchange="loadAllTransactions()" class="text-sm bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 outline-none">
+                        <option value="">All Types</option>
+                        <option value="INCOME">Income</option>
+                        <option value="EXPENSE">Expense</option>
+                    </select>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <span class="text-xs font-semibold text-slate-500">Category:</span>
+                    <select id="filter-category" onchange="loadAllTransactions()" class="text-sm bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 outline-none">
+                        <option value="">All Categories</option>
+                        <option value="FOOD">Food & Groceries</option>
+                        <option value="TRAVEL">Travel</option>
+                        <option value="SHOPPING">Shopping</option>
+                        <option value="BILLS">Bills</option>
+                        <option value="SALARY">Salary</option>
+                        <option value="FREELANCE">Freelance</option>
+                    </select>
+                </div>
+                <div class="ml-auto text-xs text-slate-400">
+                    Showing <span id="tx-count" class="font-semibold text-slate-600">0</span> items
+                </div>
+            </div>
+
+            <!-- Full Transactions Table -->
+            <div class="glass-card rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm text-slate-600">
+                        <thead class="bg-slate-50 text-xs uppercase font-semibold text-slate-500 border-b border-slate-200">
+                            <tr>
+                                <th class="py-3.5 px-6">ID</th>
+                                <th class="py-3.5 px-6">Date</th>
+                                <th class="py-3.5 px-6">Type</th>
+                                <th class="py-3.5 px-6">Category</th>
+                                <th class="py-3.5 px-6">Description</th>
+                                <th class="py-3.5 px-6 text-right">Amount</th>
+                                <th class="py-3.5 px-6 text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="full-transactions-body" class="divide-y divide-slate-100">
+                            <tr>
+                                <td colspan="7" class="text-center py-10 text-slate-400">Loading transactions...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- TAB 3: BUDGETS & ALERTS VIEW              -->
+        <!-- ========================================== -->
+        <section id="view-budgets" class="space-y-6 hidden">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-900">Monthly Budgets & Alerts</h2>
+                    <p class="text-slate-500 text-sm">Set spending limits and receive alerts when you reach 80% or 100%</p>
+                </div>
+                <button onclick="document.getElementById('add-budget-modal').classList.remove('hidden')" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-4 py-2 rounded-xl text-sm transition shadow-sm flex items-center space-x-2">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>Set Category Budget</span>
+                </button>
+            </div>
+
+            <!-- Budgets Grid -->
+            <div id="budgets-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Injected dynamically -->
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- TAB 4: ARCHITECTURE & GUIDE (LEARNING HUB)-->
+        <!-- ========================================== -->
+        <section id="view-guide" class="space-y-8 hidden">
+            <!-- Header -->
+            <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+                <span class="text-xs font-bold text-indigo-600 uppercase tracking-widest bg-indigo-50 px-2.5 py-1 rounded-md">Deep Dive Guide</span>
+                <h2 class="text-3xl font-extrabold text-slate-900 mt-2">FinFlow Architecture & Concept Guide 🧠</h2>
+                <p class="text-slate-600 mt-1">
+                    Everything you need to understand how FinFlow works from top to bottom — perfect for backend interviews!
+                </p>
+            </div>
+
+            <!-- Visual Flowchart of Request Flow -->
+            <div class="glass-card rounded-2xl p-6 border border-slate-200 shadow-sm">
+                <h3 class="text-lg font-bold text-slate-900 mb-4 flex items-center space-x-2">
+                    <span class="w-7 h-7 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center text-sm">1</span>
+                    <span>How a Request Flows Through the System</span>
+                </h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-center">
+                    <div class="bg-indigo-50 p-4 rounded-xl border border-indigo-100">
+                        <div class="w-10 h-10 rounded-full bg-indigo-600 text-white flex items-center justify-center mx-auto mb-2 font-bold text-sm">1</div>
+                        <h4 class="font-bold text-slate-900 text-sm">Controller</h4>
+                        <p class="text-xs text-slate-500 mt-1">Handles incoming HTTP requests, validates JSON with Bean Validation, extracts User from JWT.</p>
+                        <span class="text-[11px] font-mono text-indigo-600 bg-white px-2 py-0.5 rounded mt-2 inline-block border border-indigo-200">TransactionController</span>
+                    </div>
+
+                    <div class="bg-violet-50 p-4 rounded-xl border border-violet-100">
+                        <div class="w-10 h-10 rounded-full bg-violet-600 text-white flex items-center justify-center mx-auto mb-2 font-bold text-sm">2</div>
+                        <h4 class="font-bold text-slate-900 text-sm">Service</h4>
+                        <p class="text-xs text-slate-500 mt-1">Contains business logic, calculates spent vs. remaining budgets, checks user ownership.</p>
+                        <span class="text-[11px] font-mono text-violet-600 bg-white px-2 py-0.5 rounded mt-2 inline-block border border-violet-200">BudgetService</span>
+                    </div>
+
+                    <div class="bg-emerald-50 p-4 rounded-xl border border-emerald-100">
+                        <div class="w-10 h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center mx-auto mb-2 font-bold text-sm">3</div>
+                        <h4 class="font-bold text-slate-900 text-sm">Repository</h4>
+                        <p class="text-xs text-slate-500 mt-1">Spring Data JPA executing custom JPQL queries, sum aggregations, and pagination.</p>
+                        <span class="text-[11px] font-mono text-emerald-600 bg-white px-2 py-0.5 rounded mt-2 inline-block border border-emerald-200">TransactionRepository</span>
+                    </div>
+
+                    <div class="bg-amber-50 p-4 rounded-xl border border-amber-100">
+                        <div class="w-10 h-10 rounded-full bg-amber-600 text-white flex items-center justify-center mx-auto mb-2 font-bold text-sm">4</div>
+                        <h4 class="font-bold text-slate-900 text-sm">PostgreSQL</h4>
+                        <p class="text-xs text-slate-500 mt-1">Persistent database storing users, transactions, and budgets with foreign key relationships.</p>
+                        <span class="text-[11px] font-mono text-amber-700 bg-white px-2 py-0.5 rounded mt-2 inline-block border border-amber-200">finflow db (port 5432)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Key Concepts Explained -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Concept 1: Security & JWT -->
+                <div class="glass-card rounded-2xl p-5 border border-slate-200 shadow-sm">
+                    <div class="flex items-center space-x-3 mb-3">
+                        <div class="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-lg">
+                            <i class="fa-solid fa-shield-halved"></i>
+                        </div>
+                        <h4 class="font-bold text-slate-900">1. Spring Security & JWT</h4>
+                    </div>
+                    <ul class="text-xs text-slate-600 space-y-2 list-disc list-inside">
+                        <li><strong>Passwords:</strong> Stored hashed with <code>BCryptPasswordEncoder</code> — never stored in plain text.</li>
+                        <li><strong>Stateless Sessions:</strong> No server-side HTTP session; each API request carries a cryptographic token in <code>Authorization: Bearer &lt;token&gt;</code>.</li>
+                        <li><strong>Ownership Verification:</strong> Before deleting or updating any transaction/budget, the service confirms <code>transaction.getUser().getId().equals(user.getId())</code>.</li>
+                    </ul>
+                </div>
+
+                <!-- Concept 2: BigDecimal -->
+                <div class="glass-card rounded-2xl p-5 border border-slate-200 shadow-sm">
+                    <div class="flex items-center space-x-3 mb-3">
+                        <div class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg">
+                            <i class="fa-solid fa-coins"></i>
+                        </div>
+                        <h4 class="font-bold text-slate-900">2. Why BigDecimal for Money?</h4>
+                    </div>
+                    <ul class="text-xs text-slate-600 space-y-2 list-disc list-inside">
+                        <li><strong>Never use <code>double</code> or <code>float</code> for money:</strong> Floating-point binary representation creates rounding errors (e.g., <code>0.1 + 0.2 = 0.30000000000000004</code>).</li>
+                        <li><strong>BigDecimal:</strong> Provides arbitrary-precision fixed-point arithmetic stored in PostgreSQL as <code>numeric(19, 2)</code>.</li>
+                    </ul>
+                </div>
+
+                <!-- Concept 3: Dynamic Budget Calculations -->
+                <div class="glass-card rounded-2xl p-5 border border-slate-200 shadow-sm">
+                    <div class="flex items-center space-x-3 mb-3">
+                        <div class="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-lg">
+                            <i class="fa-solid fa-calculator"></i>
+                        </div>
+                        <h4 class="font-bold text-slate-900">3. Real-Time Budget Tracking</h4>
+                    </div>
+                    <ul class="text-xs text-slate-600 space-y-2 list-disc list-inside">
+                        <li>The <code>spent</code> amount is not hardcoded. Whenever budgets are fetched, the service runs a SQL sum query:</li>
+                        <li class="font-mono bg-slate-100 p-2 rounded text-[11px] text-slate-700">
+                            SELECT COALESCE(SUM(amount), 0) FROM transactions WHERE type='EXPENSE' AND category=:cat AND month=:m
+                        </li>
+                        <li><code>remaining = monthlyLimit - spent</code></li>
+                    </ul>
+                </div>
+
+                <!-- Concept 4: Global Exception Handling -->
+                <div class="glass-card rounded-2xl p-5 border border-slate-200 shadow-sm">
+                    <div class="flex items-center space-x-3 mb-3">
+                        <div class="w-9 h-9 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-lg">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                        </div>
+                        <h4 class="font-bold text-slate-900">4. Global Exception Handler</h4>
+                    </div>
+                    <ul class="text-xs text-slate-600 space-y-2 list-disc list-inside">
+                        <li>Uses <code>@RestControllerAdvice</code> to catch application errors globally.</li>
+                        <li>Translates domain errors into clean HTTP codes:
+                            <span class="font-semibold text-slate-700">404 (Not Found)</span>,
+                            <span class="font-semibold text-slate-700">409 (Conflict/Duplicate email)</span>,
+                            <span class="font-semibold text-slate-700">400 (Validation failed)</span>.
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Database Design -->
+            <div class="glass-card rounded-2xl p-6 border border-slate-200 shadow-sm">
+                <h3 class="text-lg font-bold text-slate-900 mb-4">🗄️ Database Tables (Entity-Relationship)</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 font-mono text-xs">
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                        <div class="font-bold text-indigo-700 text-sm mb-2">users</div>
+                        <div class="space-y-1 text-slate-600">
+                            <div>• id (PK, BigInt)</div>
+                            <div>• name (VarChar)</div>
+                            <div>• email (Unique VarChar)</div>
+                            <div>• password_hash (VarChar)</div>
+                            <div>• created_at (Timestamp)</div>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                        <div class="font-bold text-indigo-700 text-sm mb-2">transactions</div>
+                        <div class="space-y-1 text-slate-600">
+                            <div>• id (PK, BigInt)</div>
+                            <div>• amount (Numeric 19,2)</div>
+                            <div>• type (INCOME / EXPENSE)</div>
+                            <div>• category (VarChar)</div>
+                            <div>• transaction_date (Date)</div>
+                            <div>• user_id (FK &rarr; users.id)</div>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                        <div class="font-bold text-indigo-700 text-sm mb-2">budgets</div>
+                        <div class="space-y-1 text-slate-600">
+                            <div>• id (PK, BigInt)</div>
+                            <div>• category (VarChar)</div>
+                            <div>• monthly_limit (Numeric 19,2)</div>
+                            <div>• budget_month (YYYY-MM)</div>
+                            <div>• user_id (FK &rarr; users.id)</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal: Login / Register -->
+    <div id="auth-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 relative">
+            <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+
+            <!-- Tabs in modal -->
+            <div class="flex border-b border-slate-200 mb-6">
+                <button onclick="setAuthTab('login')" id="modal-tab-login" class="flex-1 pb-3 text-sm font-bold text-indigo-600 border-b-2 border-indigo-600">Sign In</button>
+                <button onclick="setAuthTab('register')" id="modal-tab-register" class="flex-1 pb-3 text-sm font-semibold text-slate-400 hover:text-slate-600">Create Account</button>
+            </div>
+
+            <!-- Login Form -->
+            <form id="form-login" onsubmit="handleLogin(event)" class="space-y-4">
+                <div>
+                    <label class="text-xs font-semibold text-slate-600 block mb-1">Email</label>
+                    <input type="email" id="login-email" value="soham@finflow.com" required class="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl p-3 outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div>
+                    <label class="text-xs font-semibold text-slate-600 block mb-1">Password</label>
+                    <input type="password" id="login-password" value="password123" required class="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl p-3 outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div id="login-error" class="text-xs text-rose-600 hidden font-medium"></div>
+                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl transition shadow-md">
+                    Sign In
+                </button>
+                <button type="button" onclick="autoFillDemo()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2.5 rounded-xl text-xs transition">
+                    ⚡ Use Demo Account (soham@finflow.com)
+                </button>
+            </form>
+
+            <!-- Register Form -->
+            <form id="form-register" onsubmit="handleRegister(event)" class="space-y-4 hidden">
+                <div>
+                    <label class="text-xs font-semibold text-slate-600 block mb-1">Full Name</label>
+                    <input type="text" id="reg-name" placeholder="John Doe" required class="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl p-3 outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div>
+                    <label class="text-xs font-semibold text-slate-600 block mb-1">Email Address</label>
+                    <input type="email" id="reg-email" placeholder="john@example.com" required class="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl p-3 outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div>
+                    <label class="text-xs font-semibold text-slate-600 block mb-1">Password (min 6 chars)</label>
+                    <input type="password" id="reg-password" placeholder="••••••••" minlength="6" required class="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl p-3 outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div id="reg-error" class="text-xs text-rose-600 hidden font-medium"></div>
+                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl transition shadow-md">
+                    Create Free Account
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Add New Transaction -->
+    <div id="add-tx-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 relative">
+            <button onclick="document.getElementById('add-tx-modal').classList.add('hidden')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <h3 class="text-lg font-bold text-slate-900 mb-1">Add New Transaction</h3>
+            <p class="text-xs text-slate-500 mb-4">Record income or an expense</p>
+
+            <form onsubmit="handleFullAddTransaction(event)" class="space-y-4">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-xs font-medium text-slate-600 block mb-1">Type</label>
+                        <select id="modal-tx-type" class="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:ring-2 focus:ring-indigo-500">
+                            <option value="EXPENSE">Expense</option>
+                            <option value="INCOME">Income</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-xs font-medium text-slate-600 block mb-1">Amount ($)</label>
+                        <input type="number" step="0.01" id="modal-tx-amount" placeholder="0.00" required class="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:ring-2 focus:ring-indigo-500 font-semibold">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-xs font-medium text-slate-600 block mb-1">Category</label>
+                    <select id="modal-tx-category" class="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="FOOD">🍔 Food & Groceries</option>
+                        <option value="TRAVEL">🚗 Travel & Transport</option>
+                        <option value="SHOPPING">🛍️ Shopping</option>
+                        <option value="BILLS">💡 Bills & Utilities</option>
+                        <option value="SALARY">💼 Salary</option>
+                        <option value="FREELANCE">💻 Freelance</option>
+                        <option value="INVESTMENT">📈 Investment</option>
+                        <option value="OTHER">📦 Other</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="text-xs font-medium text-slate-600 block mb-1">Description</label>
+                    <input type="text" id="modal-tx-desc" placeholder="e.g. Flight ticket" class="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+
+                <div>
+                    <label class="text-xs font-medium text-slate-600 block mb-1">Date</label>
+                    <input type="date" id="modal-tx-date" required class="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+
+                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl transition shadow-md">
+                    Add Transaction
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Add New Budget -->
+    <div id="add-budget-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 relative">
+            <button onclick="document.getElementById('add-budget-modal').classList.add('hidden')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <h3 class="text-lg font-bold text-slate-900 mb-1">Create Monthly Budget</h3>
+            <p class="text-xs text-slate-500 mb-4">Set a limit to trigger warnings and alerts</p>
+
+            <form onsubmit="handleAddBudget(event)" class="space-y-4">
+                <div>
+                    <label class="text-xs font-medium text-slate-600 block mb-1">Category</label>
+                    <select id="modal-budget-category" class="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="FOOD">🍔 Food & Groceries</option>
+                        <option value="TRAVEL">🚗 Travel & Transport</option>
+                        <option value="SHOPPING">🛍️ Shopping</option>
+                        <option value="BILLS">💡 Bills & Utilities</option>
+                        <option value="ENTERTAINMENT">🎬 Entertainment</option>
+                        <option value="OTHER">📦 Other</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="text-xs font-medium text-slate-600 block mb-1">Monthly Limit ($)</label>
+                    <input type="number" step="0.01" id="modal-budget-limit" placeholder="500.00" required class="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:ring-2 focus:ring-indigo-500 font-semibold">
+                </div>
+
+                <div>
+                    <label class="text-xs font-medium text-slate-600 block mb-1">Month (YYYY-MM)</label>
+                    <input type="month" id="modal-budget-month" value="2026-10" required class="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+
+                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl transition shadow-md">
+                    Set Budget
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Application Script -->
+    <script>
+        // State
+        let token = localStorage.getItem('finflow_jwt') || '';
+        let currentUser = JSON.parse(localStorage.getItem('finflow_user') || 'null');
+        let cashflowChartInstance = null;
+        let categoryChartInstance = null;
+
+        // Initialize today's date in forms
+        const todayIso = new Date().toISOString().split('T')[0];
+        document.getElementById('quick-date').value = todayIso;
+        document.getElementById('modal-tx-date').value = todayIso;
+
+        // On Page Load
+        window.addEventListener('DOMContentLoaded', () => {
+            updateAuthUI();
+            if (token) {
+                refreshAllData();
+            } else {
+                // Open auth modal if not signed in so user can jump right in
+                openAuthModal('login');
+            }
+        });
+
+        // Tab Navigation
+        function switchTab(tabName) {
+            ['dashboard', 'transactions', 'budgets', 'guide'].forEach(t => {
+                const view = document.getElementById(`view-${t}`);
+                const btn = document.getElementById(`tab-btn-${t}`);
+                if (t === tabName) {
+                    view.classList.remove('hidden');
+                    btn.classList.add('text-indigo-600', 'bg-indigo-50');
+                    btn.classList.remove('text-slate-600', 'hover:bg-slate-100');
+                } else {
+                    view.classList.add('hidden');
+                    btn.classList.remove('text-indigo-600', 'bg-indigo-50');
+                    btn.classList.add('text-slate-600', 'hover:bg-slate-100');
+                }
+            });
+
+            if (tabName === 'transactions') loadAllTransactions();
+            if (tabName === 'budgets') loadBudgets();
+        }
+
+        // Auth UI
+        function updateAuthUI() {
+            const authButtons = document.getElementById('auth-buttons');
+            const profileBadge = document.getElementById('user-profile-badge');
+            const userName = document.getElementById('user-display-name');
+            const userAvatar = document.getElementById('user-avatar');
+
+            if (token && currentUser) {
+                authButtons.classList.add('hidden');
+                profileBadge.classList.remove('hidden');
+                profileBadge.classList.add('flex');
+                userName.textContent = currentUser.name || currentUser.email;
+                userAvatar.textContent = (currentUser.name || currentUser.email).charAt(0).toUpperCase();
+            } else {
+                authButtons.classList.remove('hidden');
+                profileBadge.classList.add('hidden');
+                profileBadge.classList.remove('flex');
+            }
+        }
+
+        function openAuthModal(tab = 'login') {
+            document.getElementById('auth-modal').classList.remove('hidden');
+            setAuthTab(tab);
+        }
+
+        function closeAuthModal() {
+            document.getElementById('auth-modal').classList.add('hidden');
+        }
+
+        function setAuthTab(tab) {
+            const formLogin = document.getElementById('form-login');
+            const formRegister = document.getElementById('form-register');
+            const tabLogin = document.getElementById('modal-tab-login');
+            const tabRegister = document.getElementById('modal-tab-register');
+
+            if (tab === 'login') {
+                formLogin.classList.remove('hidden');
+                formRegister.classList.add('hidden');
+                tabLogin.className = 'flex-1 pb-3 text-sm font-bold text-indigo-600 border-b-2 border-indigo-600';
+                tabRegister.className = 'flex-1 pb-3 text-sm font-semibold text-slate-400 hover:text-slate-600';
+            } else {
+                formLogin.classList.add('hidden');
+                formRegister.classList.remove('hidden');
+                tabRegister.className = 'flex-1 pb-3 text-sm font-bold text-indigo-600 border-b-2 border-indigo-600';
+                tabLogin.className = 'flex-1 pb-3 text-sm font-semibold text-slate-400 hover:text-slate-600';
+            }
+        }
+
+        function autoFillDemo() {
+            document.getElementById('login-email').value = 'soham@finflow.com';
+            document.getElementById('login-password').value = 'password123';
+        }
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            const errorDiv = document.getElementById('login-error');
+            errorDiv.classList.add('hidden');
+
+            try {
+                const res = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await res.json();
+                if (!res.ok) {
+                    errorDiv.textContent = data.message || 'Invalid email or password';
+                    errorDiv.classList.remove('hidden');
+                    return;
+                }
+
+                token = data.token;
+                currentUser = { name: data.name, email: data.email };
+                localStorage.setItem('finflow_jwt', token);
+                localStorage.setItem('finflow_user', JSON.stringify(currentUser));
+
+                closeAuthModal();
+                updateAuthUI();
+                refreshAllData();
+            } catch (err) {
+                errorDiv.textContent = 'Network or server error: ' + err.message;
+                errorDiv.classList.remove('hidden');
+            }
+        }
+
+        async function handleRegister(e) {
+            e.preventDefault();
+            const name = document.getElementById('reg-name').value;
+            const email = document.getElementById('reg-email').value;
+            const password = document.getElementById('reg-password').value;
+            const errorDiv = document.getElementById('reg-error');
+            errorDiv.classList.add('hidden');
+
+            try {
+                const res = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, password })
+                });
+
+                const data = await res.json();
+                if (!res.ok) {
+                    errorDiv.textContent = data.message || 'Registration failed';
+                    errorDiv.classList.remove('hidden');
+                    return;
+                }
+
+                token = data.token;
+                currentUser = { name: data.name, email: data.email };
+                localStorage.setItem('finflow_jwt', token);
+                localStorage.setItem('finflow_user', JSON.stringify(currentUser));
+
+                closeAuthModal();
+                updateAuthUI();
+                refreshAllData();
+            } catch (err) {
+                errorDiv.textContent = 'Server error: ' + err.message;
+                errorDiv.classList.remove('hidden');
+            }
+        }
+
+        function logout() {
+            token = '';
+            currentUser = null;
+            localStorage.removeItem('finflow_jwt');
+            localStorage.removeItem('finflow_user');
+            updateAuthUI();
+            openAuthModal('login');
+        }
+
+        // Data Fetching Helper
+        async function authFetch(url, options = {}) {
+            if (!token) {
+                openAuthModal('login');
+                throw new Error('Not authenticated');
+            }
+            options.headers = {
+                ...options.headers,
+                'Authorization': `Bearer ${token}`
+            };
+            const response = await fetch(url, options);
+            if (response.status === 403 || response.status === 401) {
+                logout();
+                throw new Error('Session expired');
+            }
+            return response;
+        }
+
+        // Refresh All Dashboard Data
+        async function refreshAllData() {
+            if (!token) return;
+            const month = document.getElementById('selected-month').value;
+            await Promise.all([
+                loadAnalytics(month),
+                loadRecentTransactions(),
+                loadBudgets(month)
+            ]);
+        }
+
+        // Load Analytics
+        async function loadAnalytics(month) {
+            try {
+                // Monthly summary
+                const resSummary = await authFetch(`/api/analytics/monthly?month=${month}`);
+                if (resSummary.ok) {
+                    const s = await resSummary.json();
+                    document.getElementById('kpi-income').textContent = `$${Number(s.totalIncome).toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+                    document.getElementById('kpi-expense').textContent = `$${Number(s.totalExpense).toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+                    document.getElementById('kpi-savings').textContent = `$${Number(s.savings).toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+                    renderCashflowChart(s.totalIncome, s.totalExpense, s.savings);
+                }
+
+                // Category breakdown
+                const resCat = await authFetch(`/api/analytics/categories?month=${month}`);
+                if (resCat.ok) {
+                    const catData = await resCat.json();
+                    renderCategoryChart(catData);
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        // Render Cashflow Bar Chart
+        function renderCashflowChart(income, expense, savings) {
+            const ctx = document.getElementById('cashflowChart').getContext('2d');
+            if (cashflowChartInstance) cashflowChartInstance.destroy();
+
+            cashflowChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Income', 'Expenses', 'Net Savings'],
+                    datasets: [{
+                        data: [income, expense, savings],
+                        backgroundColor: ['#10b981', '#f43f5e', '#6366f1'],
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: '#f1f5f9' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        // Render Category Doughnut Chart
+        function renderCategoryChart(categories) {
+            const ctx = document.getElementById('categoryChart').getContext('2d');
+            const noDataMsg = document.getElementById('no-category-data');
+
+            if (categoryChartInstance) categoryChartInstance.destroy();
+
+            if (!categories || categories.length === 0) {
+                noDataMsg.classList.remove('hidden');
+                return;
+            }
+            noDataMsg.classList.add('hidden');
+
+            const labels = categories.map(c => c.category);
+            const data = categories.map(c => Number(c.totalAmount));
+
+            categoryChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: ['#6366f1', '#f59e0b', '#ec4899', '#14b8a6', '#8b5cf6', '#3b82f6'],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } }
+                    }
+                }
+            });
+        }
+
+        // Load Recent Transactions (Top 5)
+        async function loadRecentTransactions() {
+            try {
+                const res = await authFetch('/api/transactions?page=0&size=5&sortBy=transactionDate&sortDir=desc');
+                if (res.ok) {
+                    const data = await res.json();
+                    const tbody = document.getElementById('recent-transactions-body');
+                    tbody.innerHTML = '';
+
+                    if (!data.content || data.content.length === 0) {
+                        tbody.innerHTML = `<tr><td colspan="4" class="text-center py-6 text-slate-400">No transactions recorded yet. Use the form on the right!</td></tr>`;
+                        return;
+                    }
+
+                    data.content.forEach(tx => {
+                        const isIncome = tx.type === 'INCOME';
+                        const tr = document.createElement('tr');
+                        tr.className = 'hover:bg-slate-50 transition';
+                        tr.innerHTML = `
+                            <td class="py-3 px-4 text-xs font-mono">${tx.transactionDate}</td>
+                            <td class="py-3 px-4">
+                                <span class="px-2 py-0.5 rounded text-xs font-semibold ${isIncome ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-700'}">
+                                    ${tx.category}
+                                </span>
+                            </td>
+                            <td class="py-3 px-4 text-xs text-slate-600">${tx.description || '-'}</td>
+                            <td class="py-3 px-4 text-right font-bold text-sm ${isIncome ? 'text-emerald-600' : 'text-slate-800'}">
+                                ${isIncome ? '+' : '-'}$${Number(tx.amount).toFixed(2)}
+                            </td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        // Load All Transactions Tab
+        async function loadAllTransactions() {
+            try {
+                const type = document.getElementById('filter-type').value;
+                const cat = document.getElementById('filter-category').value;
+                let url = '/api/transactions?page=0&size=50&sortBy=transactionDate&sortDir=desc';
+                if (type) url += `&type=${type}`;
+                if (cat) url += `&category=${cat}`;
+
+                const res = await authFetch(url);
+                if (res.ok) {
+                    const data = await res.json();
+                    document.getElementById('tx-count').textContent = data.totalElements || 0;
+                    const tbody = document.getElementById('full-transactions-body');
+                    tbody.innerHTML = '';
+
+                    if (!data.content || data.content.length === 0) {
+                        tbody.innerHTML = `<tr><td colspan="7" class="text-center py-10 text-slate-400">No transactions found with the selected filter.</td></tr>`;
+                        return;
+                    }
+
+                    data.content.forEach(tx => {
+                        const isIncome = tx.type === 'INCOME';
+                        const tr = document.createElement('tr');
+                        tr.className = 'hover:bg-slate-50 transition';
+                        tr.innerHTML = `
+                            <td class="py-3.5 px-6 font-mono text-xs text-slate-400">#${tx.id}</td>
+                            <td class="py-3.5 px-6 text-xs font-mono text-slate-600">${tx.transactionDate}</td>
+                            <td class="py-3.5 px-6">
+                                <span class="px-2 py-0.5 rounded-full text-xs font-semibold ${isIncome ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}">
+                                    ${tx.type}
+                                </span>
+                            </td>
+                            <td class="py-3.5 px-6 font-medium text-slate-800">${tx.category}</td>
+                            <td class="py-3.5 px-6 text-xs text-slate-500">${tx.description || '-'}</td>
+                            <td class="py-3.5 px-6 text-right font-bold ${isIncome ? 'text-emerald-600' : 'text-slate-800'}">
+                                ${isIncome ? '+' : '-'}$${Number(tx.amount).toFixed(2)}
+                            </td>
+                            <td class="py-3.5 px-6 text-center">
+                                <button onclick="deleteTransaction(${tx.id})" title="Delete" class="text-slate-400 hover:text-rose-600 transition p-1">
+                                    <i class="fa-regular fa-trash-can"></i>
+                                </button>
+                            </td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        // Delete Transaction
+        async function deleteTransaction(id) {
+            if (!confirm(`Are you sure you want to delete transaction #${id}?`)) return;
+            try {
+                const res = await authFetch(`/api/transactions/${id}`, { method: 'DELETE' });
+                if (res.ok) {
+                    refreshAllData();
+                    loadAllTransactions();
+                }
+            } catch (e) {
+                alert('Failed to delete transaction: ' + e.message);
+            }
+        }
+
+        // Quick Add Transaction
+        async function handleQuickAddTransaction(e) {
+            e.preventDefault();
+            const type = document.getElementById('quick-type').value;
+            const amount = parseFloat(document.getElementById('quick-amount').value);
+            const category = document.getElementById('quick-category').value;
+            const description = document.getElementById('quick-desc').value;
+            const transactionDate = document.getElementById('quick-date').value;
+
+            try {
+                const res = await authFetch('/api/transactions', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ amount, type, category, description, transactionDate })
+                });
+
+                if (res.ok) {
+                    document.getElementById('quick-amount').value = '';
+                    document.getElementById('quick-desc').value = '';
+                    refreshAllData();
+                } else {
+                    const err = await res.json();
+                    alert('Error: ' + (err.message || 'Could not save transaction'));
+                }
+            } catch (err) {
+                alert(err.message);
+            }
+        }
+
+        // Full Modal Add Transaction
+        async function handleFullAddTransaction(e) {
+            e.preventDefault();
+            const type = document.getElementById('modal-tx-type').value;
+            const amount = parseFloat(document.getElementById('modal-tx-amount').value);
+            const category = document.getElementById('modal-tx-category').value;
+            const description = document.getElementById('modal-tx-desc').value;
+            const transactionDate = document.getElementById('modal-tx-date').value;
+
+            try {
+                const res = await authFetch('/api/transactions', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ amount, type, category, description, transactionDate })
+                });
+
+                if (res.ok) {
+                    document.getElementById('add-tx-modal').classList.add('hidden');
+                    document.getElementById('modal-tx-amount').value = '';
+                    document.getElementById('modal-tx-desc').value = '';
+                    refreshAllData();
+                    loadAllTransactions();
+                }
+            } catch (err) {
+                alert(err.message);
+            }
+        }
+
+        // Load Budgets & Compute Alerts
+        async function loadBudgets(monthOverride) {
+            try {
+                const month = monthOverride || document.getElementById('selected-month').value;
+                const res = await authFetch(`/api/budgets?month=${month}`);
+                if (res.ok) {
+                    const budgets = await res.json();
+                    const grid = document.getElementById('budgets-grid');
+                    const alertContainer = document.getElementById('budget-alert-container');
+                    document.getElementById('kpi-budget-count').textContent = budgets.length;
+
+                    grid.innerHTML = '';
+                    alertContainer.innerHTML = '';
+                    let hasAlerts = false;
+
+                    if (budgets.length === 0) {
+                        grid.innerHTML = `
+                            <div class="col-span-full glass-card rounded-2xl p-10 text-center text-slate-400">
+                                <i class="fa-solid fa-bullseye text-4xl mb-3 text-slate-300"></i>
+                                <p class="text-base font-semibold text-slate-600">No Budgets Set For ${month}</p>
+                                <p class="text-xs text-slate-400 mt-1">Click "Set Category Budget" to track monthly limits and trigger alerts.</p>
+                            </div>
+                        `;
+                        alertContainer.classList.add('hidden');
+                        return;
+                    }
+
+                    budgets.forEach(b => {
+                        const limit = Number(b.monthlyLimit);
+                        const spent = Number(b.spent);
+                        const pct = limit > 0 ? Math.min(Math.round((spent / limit) * 100), 200) : 0;
+
+                        let color = 'emerald';
+                        let statusText = 'Safe';
+                        let badgeBg = 'bg-emerald-50 text-emerald-700 border-emerald-200';
+
+                        if (spent >= limit) {
+                            color = 'rose';
+                            statusText = 'Exceeded!';
+                            badgeBg = 'bg-rose-50 text-rose-700 border-rose-200';
+                            hasAlerts = true;
+                            // Add Alert Banner
+                            alertContainer.innerHTML += `
+                                <div class="bg-rose-50 border-l-4 border-rose-500 p-4 rounded-r-xl shadow-sm mb-2 flex items-center justify-between">
+                                    <div class="flex items-center space-x-3">
+                                        <i class="fa-solid fa-triangle-exclamation text-rose-600 text-lg"></i>
+                                        <div>
+                                            <p class="text-sm font-bold text-rose-900">Budget Exceeded for ${b.category}!</p>
+                                            <p class="text-xs text-rose-700">You've spent $${spent.toFixed(2)} out of your $${limit.toFixed(2)} limit ($${(spent - limit).toFixed(2)} over budget).</p>
+                                        </div>
+                                    </div>
+                                    <span class="text-xs font-bold bg-rose-200 text-rose-800 px-2.5 py-1 rounded-full">${pct}%</span>
+                                </div>
+                            `;
+                        } else if (pct >= 80) {
+                            color = 'amber';
+                            statusText = 'Warning (80%+)';
+                            badgeBg = 'bg-amber-50 text-amber-700 border-amber-200';
+                            hasAlerts = true;
+                            alertContainer.innerHTML += `
+                                <div class="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-xl shadow-sm mb-2 flex items-center justify-between">
+                                    <div class="flex items-center space-x-3">
+                                        <i class="fa-solid fa-circle-exclamation text-amber-600 text-lg"></i>
+                                        <div>
+                                            <p class="text-sm font-bold text-amber-900">Approaching Budget Limit: ${b.category}</p>
+                                            <p class="text-xs text-amber-700">You've used ${pct}% of your limit. Only $${Number(b.remaining).toFixed(2)} remaining.</p>
+                                        </div>
+                                    </div>
+                                    <span class="text-xs font-bold bg-amber-200 text-amber-800 px-2.5 py-1 rounded-full">${pct}%</span>
+                                </div>
+                            `;
+                        }
+
+                        if (hasAlerts) {
+                            alertContainer.classList.remove('hidden');
+                        } else {
+                            alertContainer.classList.add('hidden');
+                        }
+
+                        const card = document.createElement('div');
+                        card.className = 'glass-card rounded-2xl p-5 shadow-sm border border-slate-200 space-y-4';
+                        card.innerHTML = `
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h4 class="font-bold text-slate-800 text-base">${b.category}</h4>
+                                    <span class="text-xs text-slate-400 font-mono">${b.month}</span>
+                                </div>
+                                <span class="text-xs px-2.5 py-1 rounded-full border font-bold ${badgeBg}">${statusText}</span>
+                            </div>
+
+                            <div>
+                                <div class="flex justify-between text-xs mb-1.5 font-medium">
+                                    <span class="text-slate-500">Spent: <b class="text-slate-800">$${spent.toFixed(2)}</b></span>
+                                    <span class="text-slate-500">Limit: <b class="text-slate-800">$${limit.toFixed(2)}</b></span>
+                                </div>
+                                <div class="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
+                                    <div class="h-3 rounded-full transition-all duration-500 ${color === 'rose' ? 'bg-rose-500' : color === 'amber' ? 'bg-amber-500' : 'bg-emerald-500'}" style="width: ${Math.min(pct, 100)}%"></div>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
+                                <span class="text-slate-500">Remaining: <b class="${b.remaining < 0 ? 'text-rose-600 font-bold' : 'text-emerald-600 font-bold'}">$${Number(b.remaining).toFixed(2)}</b></span>
+                                <button onclick="deleteBudget(${b.id})" class="text-slate-400 hover:text-rose-600 transition" title="Delete Budget">
+                                    <i class="fa-regular fa-trash-can"></i>
+                                </button>
+                            </div>
+                        `;
+                        grid.appendChild(card);
+                    });
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        // Add Budget
+        async function handleAddBudget(e) {
+            e.preventDefault();
+            const category = document.getElementById('modal-budget-category').value;
+            const monthlyLimit = parseFloat(document.getElementById('modal-budget-limit').value);
+            const month = document.getElementById('modal-budget-month').value;
+
+            try {
+                const res = await authFetch('/api/budgets', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ category, monthlyLimit, month })
+                });
+
+                if (res.ok) {
+                    document.getElementById('add-budget-modal').classList.add('hidden');
+                    document.getElementById('modal-budget-limit').value = '';
+                    loadBudgets();
+                    refreshAllData();
+                } else {
+                    const err = await res.json();
+                    alert('Error: ' + (err.message || 'Could not create budget'));
+                }
+            } catch (err) {
+                alert(err.message);
+            }
+        }
+
+        // Delete Budget
+        async function deleteBudget(id) {
+            if (!confirm(`Delete this budget?`)) return;
+            try {
+                const res = await authFetch(`/api/budgets/${id}`, { method: 'DELETE' });
+                if (res.ok) {
+                    loadBudgets();
+                    refreshAllData();
+                }
+            } catch (err) {
+                alert('Failed to delete budget: ' + err.message);
+            }
+        }
+    </script>
+</body>
+</html>
