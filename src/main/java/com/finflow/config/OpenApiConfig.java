@@ -17,16 +17,20 @@ public class OpenApiConfig {
 
     @Bean
     public OpenAPI openAPI() {
+        
         return new OpenAPI()
                 .info(new Info()
                         .title("FinFlow API")
                         .description("Personal Finance & Expense Tracker REST API")
+                      
                         .version("1.0")
                         .contact(new Contact()
                                 .name("FinFlow Team")))
                 .addSecurityItem(new SecurityRequirement().addList("Bearer Authentication"))
+            
                 .components(new Components()
                         .addSecuritySchemes("Bearer Authentication",
+                                            
                                 new SecurityScheme()
                                         .type(SecurityScheme.Type.HTTP)
                                         .bearerFormat("JWT")
