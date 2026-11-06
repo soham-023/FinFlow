@@ -121,15 +121,18 @@ class TransactionControllerTest {
     @DisplayName("POST /api/transactions should return 400 when amount is negative")
     void shouldRejectNegativeAmount() throws Exception {
         TransactionRequest request = new TransactionRequest(
+            
                 new BigDecimal("-50.00"),
                 TransactionType.EXPENSE,
                 "FOOD",
                 "Invalid amount",
                 LocalDate.of(2026, 10, 22)
+            
         );
 
         mockMvc.perform(post("/api/transactions")
                         .contentType(MediaType.APPLICATION_JSON)
+                        
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.errors.amount").exists());
@@ -142,6 +145,7 @@ class TransactionControllerTest {
                 1L,
                 new BigDecimal("150.00"),
                 TransactionType.EXPENSE,
+            
                 "TRAVEL",
                 "Train ticket",
                 LocalDate.of(2026, 10, 22),
@@ -153,6 +157,7 @@ class TransactionControllerTest {
         mockMvc.perform(get("/api/transactions/1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1L))
+            
                 .andExpect(jsonPath("$.amount").value(150.00))
                 .andExpect(jsonPath("$.category").value("TRAVEL"));
     }
@@ -161,6 +166,7 @@ class TransactionControllerTest {
     @DisplayName("DELETE /api/transactions/{id} should return 204 No Content")
     void shouldDeleteTransaction() throws Exception {
         doNothing().when(transactionService).delete(eq(1L), any());
+        
 
         mockMvc.perform(delete("/api/transactions/1"))
                 .andExpect(status().isNoContent());
