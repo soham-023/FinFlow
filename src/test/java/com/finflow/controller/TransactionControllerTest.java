@@ -12,6 +12,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -34,6 +35,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(TransactionController.class)
@@ -42,7 +44,6 @@ class TransactionControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
-    
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -64,10 +65,12 @@ class TransactionControllerTest {
         user = User.builder()
                 .id(1L)
                 .name("Alex Smith")
+            
                 .email("alex@example.com")
                 .build();
 
         UsernamePasswordAuthenticationToken auth =
+            
                 new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(auth);
         
@@ -81,6 +84,7 @@ class TransactionControllerTest {
     @Test
     @DisplayName("POST /api/transactions should create transaction and return 201")
     void shouldCreateTransaction() throws Exception {
+        
         TransactionRequest request = new TransactionRequest(
                 new BigDecimal("250.00"),
            
@@ -93,6 +97,7 @@ class TransactionControllerTest {
         TransactionResponse response = new TransactionResponse(
                 1L,
                 new BigDecimal("250.00"),
+            
                 TransactionType.EXPENSE,
                 "FOOD",
                 "Lunch with colleagues",
