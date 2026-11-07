@@ -5,6 +5,7 @@ import com.finflow.entity.TransactionType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -16,9 +17,7 @@ import java.util.List;
 
 @Repository
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
-
     Page<Transaction> findByUserId(Long userId, Pageable pageable);
-    
 
     Page<Transaction> findByUserIdAndType(Long userId, TransactionType type, Pageable pageable);
     
@@ -31,6 +30,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
      * Sum of amounts by transaction type for a user within a date range.
      */
     @Query("SELECT COALESCE(SUM(t.amount), 0) FROM Transaction t " +
+           
            "WHERE t.user.id = :userId AND t.type = :type " +
            "AND t.transactionDate BETWEEN :startDate AND :endDate")
     
@@ -39,6 +39,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
             @Param("type") TransactionType type,
         
             @Param("startDate") LocalDate startDate,
+        
             @Param("endDate") LocalDate endDate);
 
     /**
@@ -46,11 +47,13 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
      */
     @Query("SELECT COALESCE(SUM(t.amount), 0) FROM Transaction t " +
            "WHERE t.user.id = :userId AND t.type = :type " +
+           
            "AND t.category = :category " +
            "AND t.transactionDate BETWEEN :startDate AND :endDate")
     BigDecimal sumAmountByUserAndTypeAndCategoryAndDateRange(
             @Param("userId") Long userId,
             @Param("type") TransactionType type,
+        
             @Param("category") String category,
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate);
@@ -64,6 +67,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
            "AND t.transactionDate BETWEEN :startDate AND :endDate " +
            "GROUP BY t.category ORDER BY SUM(t.amount) DESC")
     List<Object[]> sumAmountByCategoryAndUserAndTypeAndDateRange(
+        
             @Param("userId") Long userId,
             @Param("type") TransactionType type,
             @Param("startDate") LocalDate startDate,
