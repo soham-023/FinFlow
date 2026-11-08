@@ -6,8 +6,10 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -78,6 +80,28 @@ public class GlobalExceptionHandler {
             
                 LocalDateTime.now(),
             
+                null
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+
+    @ExceptionHandler(DateTimeParseException.class)
+    public ResponseEntity<ErrorResponse> handleDateTimeParse(DateTimeParseException ex) {
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.BAD_REQUEST.value(),
+                "Invalid date value '" + ex.getParsedString() + "'. Expected format YYYY-MM for months or YYYY-MM-DD for dates",
+                LocalDateTime.now(),
+                null
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorResponse> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.BAD_REQUEST.value(),
+                "Invalid value '" + ex.getValue() + "' for parameter '" + ex.getName() + "'",
+                LocalDateTime.now(),
                 null
         );
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
