@@ -15,6 +15,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -110,5 +111,20 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.token").value("jwt.token.here"))
                 .andExpect(jsonPath("$.email").value("alex@example.com"));
         
+    }
+
+    @Test
+    @DisplayName("POST /api/auth/login with wrong credentials should return 401")
+    void shouldReturnUnauthorizedOnBadCredentials() throws Exception {
+        AuthRequest request = new AuthRequest("alex@example.com", "wrong-password");
+
+        when(authService.login(any(AuthRequest.class)))
+                .thenThrow(new BadCredentialsException("Bad credentials"));
+
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.message").value("Invalid email or password"));
     }
 }
