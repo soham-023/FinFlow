@@ -36,8 +36,28 @@ The API will be available at `http://localhost:8080`.
 
 2. **Run the application**:
    ```bash
-   ./mvnw spring-boot:run
+   mvn spring-boot:run
    ```
+
+### Running Tests
+Tests use an in-memory H2 database (`src/test/resources/application-test.yml`), so no PostgreSQL instance is needed:
+```bash
+mvn test
+```
+Every push and pull request to `main` runs `mvn -B verify` on GitHub Actions (`.github/workflows/ci.yml`).
+
+## Configuration
+
+Settings live in `src/main/resources/application.yml` and can be overridden with environment variables (Spring Boot relaxed binding):
+
+| Environment variable | Default | Description |
+|---|---|---|
+| `SPRING_DATASOURCE_URL` | `jdbc:postgresql://localhost:5432/finflow` | JDBC URL of the PostgreSQL database |
+| `SPRING_DATASOURCE_USERNAME` | `postgres` | Database user |
+| `SPRING_DATASOURCE_PASSWORD` | `postgres` | Database password |
+| `JWT_SECRET` | development key | Base64-encoded HMAC key used to sign JWTs (at least 256 bits). **Always override in production.** |
+| `JWT_EXPIRATION` | `86400000` | Token lifetime in milliseconds (24 hours) |
+| `SERVER_PORT` | `8080` | HTTP port |
 
 ## API Endpoints
 
@@ -68,6 +88,31 @@ The API will be available at `http://localhost:8080`.
 |--------|----------|-------------|
 | GET | `/api/analytics/monthly` | Monthly financial summary |
 | GET | `/api/analytics/categories` | Spending by category |
+
+### Query Parameters
+
+- `GET /api/transactions` supports `page` (default `0`), `size` (default `10`), `sortBy` (default `transactionDate`), `sortDir` (`asc` or `desc`, default `desc`), and an optional `type` (`INCOME` or `EXPENSE`) or `category` filter.
+- `GET /api/budgets`, `GET /api/analytics/monthly` and `GET /api/analytics/categories` accept an optional `month` in `YYYY-MM` format; analytics default to the current month.
+
+### Error Responses
+
+Errors share one JSON shape:
+```json
+{
+  "status": 400,
+  "message": "Validation failed",
+  "timestamp": "2026-10-22T12:00:00",
+  "errors": { "amount": "Amount must be positive" }
+}
+```
+
+| Status | When |
+|---|---|
+| 400 | Validation failure or malformed parameter (e.g. a bad `month`) |
+| 401 | Wrong email or password on login |
+| 403 | Missing or invalid JWT, or accessing another user's transaction or budget |
+| 404 | Resource not found |
+| 409 | Email already registered |
 
 ## API Documentation
 
