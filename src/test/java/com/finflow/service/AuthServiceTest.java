@@ -78,6 +78,22 @@ class AuthServiceTest {
     }
 
     @Test
+    @DisplayName("Should store the email in lower case so lookups are case-insensitive")
+    void shouldNormalizeEmailOnRegister() {
+        RegisterRequest request = new RegisterRequest("  Alex Smith ", "  Alex@Example.COM ", "password123");
+
+        when(userRepository.existsByEmail("alex@example.com")).thenReturn(false);
+        when(passwordEncoder.encode("password123")).thenReturn("encodedPassword");
+        when(jwtService.generateToken(any(User.class))).thenReturn("mock-jwt-token");
+
+        AuthResponse response = authService.register(request);
+
+        assertThat(response.email()).isEqualTo("alex@example.com");
+        assertThat(response.name()).isEqualTo("Alex Smith");
+        verify(userRepository).existsByEmail("alex@example.com");
+    }
+
+    @Test
     @DisplayName("Should throw DuplicateResourceException when email already exists")
     void shouldThrowWhenEmailExists() {
         RegisterRequest request = new RegisterRequest("Alex Smith", "alex@example.com", "password123");
@@ -105,6 +121,22 @@ class AuthServiceTest {
         assertThat(response.token()).isEqualTo("mock-jwt-token");
         assertThat(response.email()).isEqualTo("alex@example.com");
 
+        verify(authenticationManager).authenticate(
+                new UsernamePasswordAuthenticationToken("alex@example.com", "password123")
+        );
+    }
+
+    @Test
+    @DisplayName("Should accept a login whose email differs only in case")
+    void shouldLoginWithDifferentlyCasedEmail() {
+        AuthRequest request = new AuthRequest("ALEX@example.com", "password123");
+
+        when(userRepository.findByEmail("alex@example.com")).thenReturn(Optional.of(user));
+        when(jwtService.generateToken(user)).thenReturn("mock-jwt-token");
+
+        AuthResponse response = authService.login(request);
+
+        assertThat(response.token()).isEqualTo("mock-jwt-token");
         verify(authenticationManager).authenticate(
                 new UsernamePasswordAuthenticationToken("alex@example.com", "password123")
         );

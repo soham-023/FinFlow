@@ -12,6 +12,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Locale;
+
 /**
  * Handles user registration and authentication.
  */
@@ -38,13 +40,14 @@ public class AuthService {
      */
     @Transactional
     public AuthResponse register(RegisterRequest request) {
-        if (userRepository.existsByEmail(request.email())) {
-            throw new DuplicateResourceException("Email already registered: " + request.email());
+        String email = normalizeEmail(request.email());
+        if (userRepository.existsByEmail(email)) {
+            throw new DuplicateResourceException("Email already registered: " + email);
         }
 
         User user = User.builder()
-                .name(request.name())
-                .email(request.email())
+                .name(request.name().trim())
+                .email(email)
                 .passwordHash(passwordEncoder.encode(request.password()))
                 .build();
 
@@ -58,14 +61,23 @@ public class AuthService {
      * Authenticate a user and return a JWT token.
      */
     public AuthResponse login(AuthRequest request) {
+        String email = normalizeEmail(request.email());
         authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.email(), request.password())
+                new UsernamePasswordAuthenticationToken(email, request.password())
         );
 
-        User user = userRepository.findByEmail(request.email())
+        User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         String token = jwtService.generateToken(user);
         return new AuthResponse(token, user.getEmail(), user.getName());
+    }
+
+    /**
+     * Emails are case-insensitive in practice, so store and look them up in one canonical form.
+     * This prevents "Alex@Example.com" and "alex@example.com" from becoming two accounts.
+     */
+    private static String normalizeEmail(String email) {
+        return email.trim().toLowerCase(Locale.ROOT);
     }
 }
