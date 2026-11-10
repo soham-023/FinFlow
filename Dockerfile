@@ -9,7 +9,10 @@ RUN mvn clean package -DskipTests -B
 # Stage 2: Run
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
-COPY --from=build /app/target/*.jar app.jar
+# Run as an unprivileged user so a compromised app cannot modify the image or bind privileged ports
+RUN addgroup -S finflow && adduser -S -G finflow finflow
+COPY --from=build --chown=finflow:finflow /app/target/*.jar app.jar
+USER finflow
 EXPOSE 8080
 # Mark the container unhealthy if the app stops answering its health check (wget ships with Alpine/BusyBox)
 HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
