@@ -17,6 +17,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Set;
+
 /**
  * REST endpoints for managing financial transactions.
  */
@@ -26,8 +28,13 @@ import org.springframework.web.bind.annotation.*;
     
 public class TransactionController {
 
+    /** Largest page a client may request, to keep queries and payloads bounded. */
+    static final int MAX_PAGE_SIZE = 100;
+
+    /** Fields clients may sort by; anything else would surface as a 500 from Spring Data. */
+    static final Set<String> SORTABLE_FIELDS = Set.of("transactionDate", "amount", "category", "type", "createdAt");
+
     private final TransactionService transactionService;
-    
 
     public TransactionController(TransactionService transactionService) {
         this.transactionService = transactionService;
@@ -53,10 +60,7 @@ public class TransactionController {
             @RequestParam(required = false) TransactionType type,
             @RequestParam(required = false) String category) {
 
-        Sort sort = sortDir.equalsIgnoreCase("asc")
-                ? Sort.by(sortBy).ascending()
-                : Sort.by(sortBy).descending();
-        Pageable pageable = PageRequest.of(page, size, sort);
+        Pageable pageable = buildPageable(page, size, sortBy, sortDir);
 
         Page<TransactionResponse> result;
         if (type != null) {
@@ -96,5 +100,31 @@ public class TransactionController {
             @AuthenticationPrincipal User user) {
         transactionService.delete(id, user);
         return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * Validate paging and sorting parameters and turn them into a {@link Pageable}.
+     *
+     * @throws IllegalArgumentException (mapped to 400) when a parameter is out of range
+     */
+    static Pageable buildPageable(int page, int size, String sortBy, String sortDir) {
+        if (page < 0) {
+            throw new IllegalArgumentException("Parameter 'page' must be 0 or greater");
+        }
+        if (size < 1 || size > MAX_PAGE_SIZE) {
+            throw new IllegalArgumentException("Parameter 'size' must be between 1 and " + MAX_PAGE_SIZE);
+        }
+        if (!SORTABLE_FIELDS.contains(sortBy)) {
+            throw new IllegalArgumentException("Parameter 'sortBy' must be one of " + SORTABLE_FIELDS.stream().sorted().toList());
+        }
+        Sort.Direction direction;
+        if (sortDir.equalsIgnoreCase("asc")) {
+            direction = Sort.Direction.ASC;
+        } else if (sortDir.equalsIgnoreCase("desc")) {
+            direction = Sort.Direction.DESC;
+        } else {
+            throw new IllegalArgumentException("Parameter 'sortDir' must be 'asc' or 'desc'");
+        }
+        return PageRequest.of(page, size, Sort.by(direction, sortBy));
     }
 }

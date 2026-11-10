@@ -17,6 +17,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -27,10 +30,12 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 
+import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 
@@ -188,6 +193,40 @@ class TransactionControllerTest {
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value(404))
                 .andExpect(jsonPath("$.code").value("ENDPOINT_NOT_FOUND"));
+    }
+
+    @Test
+    @DisplayName("GET /api/transactions should reject out-of-range paging parameters with 400")
+    void shouldRejectInvalidPaging() throws Exception {
+        mockMvc.perform(get("/api/transactions").param("page", "-1"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("INVALID_PARAMETER"));
+        mockMvc.perform(get("/api/transactions").param("size", "0"))
+                .andExpect(status().isBadRequest());
+        mockMvc.perform(get("/api/transactions").param("size", "101"))
+                .andExpect(status().isBadRequest());
+        mockMvc.perform(get("/api/transactions").param("sortDir", "sideways"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("GET /api/transactions should reject an unknown sort field with 400 instead of 500")
+    void shouldRejectUnknownSortField() throws Exception {
+        mockMvc.perform(get("/api/transactions").param("sortBy", "user.passwordHash"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value(containsString("sortBy")));
+    }
+
+    @Test
+    @DisplayName("GET /api/transactions should pass validated paging to the service")
+    void shouldListWithValidPaging() throws Exception {
+        when(transactionService.getAll(any(), any())).thenReturn(Page.empty());
+
+        mockMvc.perform(get("/api/transactions").param("size", "100").param("sortBy", "amount").param("sortDir", "ASC"))
+                .andExpect(status().isOk());
+
+        verify(transactionService).getAll(any(), eq(
+                PageRequest.of(0, 100, Sort.by(Sort.Direction.ASC, "amount"))));
     }
 
     @Test
