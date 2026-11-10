@@ -111,8 +111,10 @@ Errors share one JSON shape:
 | 400 | Validation failure, malformed JSON body, or malformed parameter (e.g. a bad `month`) |
 | 401 | Wrong email or password on login |
 | 403 | Missing or invalid JWT, or accessing another user's transaction or budget |
-| 404 | Resource not found |
+| 404 | Resource or endpoint not found |
+| 405 | HTTP method not supported by the endpoint |
 | 409 | Email already registered, or a budget already exists for that category and month |
+| 415 | Request body is not `application/json` |
 
 ## API Documentation
 

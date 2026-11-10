@@ -161,6 +161,32 @@ class TransactionControllerTest {
     }
 
     @Test
+    @DisplayName("Unsupported HTTP method should return 405 instead of 500")
+    void shouldReturnMethodNotAllowed() throws Exception {
+        mockMvc.perform(patch("/api/transactions/1"))
+                .andExpect(status().isMethodNotAllowed())
+                .andExpect(jsonPath("$.status").value(405));
+    }
+
+    @Test
+    @DisplayName("Non-JSON content type should return 415 instead of 500")
+    void shouldReturnUnsupportedMediaType() throws Exception {
+        mockMvc.perform(post("/api/transactions")
+                        .contentType(MediaType.TEXT_PLAIN)
+                        .content("amount=10"))
+                .andExpect(status().isUnsupportedMediaType())
+                .andExpect(jsonPath("$.status").value(415));
+    }
+
+    @Test
+    @DisplayName("Unknown route should return 404 instead of 500")
+    void shouldReturnNotFoundForUnknownRoute() throws Exception {
+        mockMvc.perform(get("/api/does-not-exist"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value(404));
+    }
+
+    @Test
     @DisplayName("GET /api/transactions/{id} should return 200 with transaction data")
     void shouldGetTransactionById() throws Exception {
         TransactionResponse response = new TransactionResponse(

@@ -2,15 +2,19 @@ package com.finflow.exception;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
@@ -134,6 +138,43 @@ public class GlobalExceptionHandler {
                 null
         );
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ErrorResponse> handleNoResource(NoResourceFoundException ex) {
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.NOT_FOUND.value(),
+                "No endpoint found for " + ex.getHttpMethod() + " /" + ex.getResourcePath(),
+                LocalDateTime.now(),
+                null
+        );
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
+
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<ErrorResponse> handleMethodNotSupported(HttpRequestMethodNotSupportedException ex) {
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.METHOD_NOT_ALLOWED.value(),
+                "HTTP method " + ex.getMethod() + " is not supported for this endpoint",
+                LocalDateTime.now(),
+                null
+        );
+        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
+                .allow(ex.getSupportedHttpMethods() != null
+                        ? ex.getSupportedHttpMethods().toArray(new HttpMethod[0])
+                        : new HttpMethod[0])
+                .body(error);
+    }
+
+    @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
+    public ResponseEntity<ErrorResponse> handleMediaTypeNotSupported(HttpMediaTypeNotSupportedException ex) {
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.UNSUPPORTED_MEDIA_TYPE.value(),
+                "Content type '" + ex.getContentType() + "' is not supported. Use application/json",
+                LocalDateTime.now(),
+                null
+        );
+        return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE).body(error);
     }
 
     @ExceptionHandler(Exception.class)
