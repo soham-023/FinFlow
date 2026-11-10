@@ -17,8 +17,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Business logic for managing financial transactions.
+ * <p>
+ * Methods are read-only transactional by default (lets Hibernate skip dirty checking and
+ * flushes); methods that write are annotated with {@code @Transactional} explicitly.
  */
 @Service
+@Transactional(readOnly = true)
 public class TransactionService {
 
     private final TransactionRepository transactionRepository;

@@ -25,6 +25,7 @@ import java.util.stream.Collectors;
  * Business logic for managing monthly budgets.
  */
 @Service
+@Transactional(readOnly = true)
 public class BudgetService {
 
     private final BudgetRepository budgetRepository;

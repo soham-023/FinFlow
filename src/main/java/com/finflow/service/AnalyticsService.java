@@ -6,6 +6,7 @@ import com.finflow.entity.TransactionType;
 import com.finflow.entity.User;
 import com.finflow.repository.TransactionRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.YearMonth;
@@ -16,6 +17,7 @@ import java.util.stream.Collectors;
  * Service for financial analytics and reporting.
  */
 @Service
+@Transactional(readOnly = true)
 public class AnalyticsService {
 
     private final TransactionRepository transactionRepository;
