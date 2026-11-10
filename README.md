@@ -131,6 +131,10 @@ Errors share one JSON shape:
 | 415 | `UNSUPPORTED_MEDIA_TYPE` | Request body is not `application/json` |
 | 500 | `INTERNAL_ERROR` | Unexpected server error (details are logged, not returned) |
 
+## Health Check
+
+`GET /actuator/health` is public and returns `{"status":"UP"}` when the app and its database connection are healthy (component details are hidden). No other actuator endpoints are exposed. The Docker image uses it as its `HEALTHCHECK`, so `docker ps` shows the container as `healthy` once it is ready.
+
 ## API Documentation
 
 Once the app is running, visit: **http://localhost:8080/swagger-ui.html**

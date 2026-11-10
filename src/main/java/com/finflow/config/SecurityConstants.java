@@ -14,7 +14,7 @@ public final class SecurityConstants {
 
     /**
      * Ant-style path patterns that are reachable without authentication:
-     * the static dashboard, auth endpoints, and the Swagger / OpenAPI docs.
+     * the static dashboard, auth endpoints, the health check, and the Swagger / OpenAPI docs.
      */
     public static final String[] PUBLIC_PATHS = {
             "/",
@@ -24,6 +24,7 @@ public final class SecurityConstants {
             "/js/**",
             "/images/**",
             "/api/auth/**",
+            "/actuator/health",
             "/swagger-ui/**",
             "/swagger-ui.html",
             "/v3/api-docs",

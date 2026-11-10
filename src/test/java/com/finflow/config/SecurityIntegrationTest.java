@@ -47,6 +47,22 @@ class SecurityIntegrationTest {
     }
 
     @Test
+    @DisplayName("Health endpoint should be public and report UP")
+    void healthEndpointShouldBePublic() throws Exception {
+        mockMvc.perform(get("/actuator/health"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("UP"))
+                .andExpect(jsonPath("$.components").doesNotExist());
+    }
+
+    @Test
+    @DisplayName("Other actuator endpoints should not be exposed")
+    void otherActuatorEndpointsShouldNotBeExposed() throws Exception {
+        mockMvc.perform(get("/actuator/env"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
     @DisplayName("Token from registration should grant access to protected endpoints")
     void shouldAllowAccessWithTokenFromRegistration() throws Exception {
         MvcResult result = mockMvc.perform(post("/api/auth/register")
