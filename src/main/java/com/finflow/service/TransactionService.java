@@ -8,6 +8,7 @@ import com.finflow.entity.User;
 import com.finflow.exception.ResourceNotFoundException;
 import com.finflow.mapper.TransactionMapper;
 import com.finflow.repository.TransactionRepository;
+import com.finflow.util.Categories;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
@@ -66,7 +67,7 @@ public class TransactionService {
      * Get transactions filtered by category with pagination.
      */
     public Page<TransactionResponse> getByCategory(User user, String category, Pageable pageable) {
-        return transactionRepository.findByUserIdAndCategory(user.getId(), category.toUpperCase(), pageable)
+        return transactionRepository.findByUserIdAndCategory(user.getId(), Categories.normalize(category), pageable)
                 .map(transactionMapper::toResponse);
     }
 
@@ -75,7 +76,7 @@ public class TransactionService {
      */
     public Page<TransactionResponse> getByTypeAndCategory(User user, TransactionType type, String category,
                                                           Pageable pageable) {
-        return transactionRepository.findByUserIdAndTypeAndCategory(user.getId(), type, category.toUpperCase(), pageable)
+        return transactionRepository.findByUserIdAndTypeAndCategory(user.getId(), type, Categories.normalize(category), pageable)
                 .map(transactionMapper::toResponse);
     }
 
@@ -88,7 +89,7 @@ public class TransactionService {
 
         transaction.setAmount(request.amount());
         transaction.setType(request.type());
-        transaction.setCategory(request.category().toUpperCase());
+        transaction.setCategory(Categories.normalize(request.category()));
         transaction.setDescription(request.description());
         transaction.setTransactionDate(request.transactionDate());
 

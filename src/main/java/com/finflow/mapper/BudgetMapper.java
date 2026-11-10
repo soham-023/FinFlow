@@ -4,6 +4,7 @@ import com.finflow.dto.BudgetRequest;
 import com.finflow.dto.BudgetResponse;
 import com.finflow.entity.Budget;
 import com.finflow.entity.User;
+import com.finflow.util.Categories;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -17,7 +18,7 @@ public class BudgetMapper {
 
     public Budget toEntity(BudgetRequest request, User user) {
         return Budget.builder()
-                .category(request.category().toUpperCase())
+                .category(Categories.normalize(request.category()))
                 .monthlyLimit(request.monthlyLimit())
                 .month(YearMonth.parse(request.month()))
                 .user(user)

@@ -4,6 +4,7 @@ import com.finflow.dto.TransactionRequest;
 import com.finflow.dto.TransactionResponse;
 import com.finflow.entity.Transaction;
 import com.finflow.entity.User;
+import com.finflow.util.Categories;
 import org.springframework.stereotype.Component;
 
 /**
@@ -16,7 +17,7 @@ public class TransactionMapper {
         return Transaction.builder()
                 .amount(request.amount())
                 .type(request.type())
-                .category(request.category().toUpperCase())
+                .category(Categories.normalize(request.category()))
                 .description(request.description())
                 .transactionDate(request.transactionDate())
                 .user(user)

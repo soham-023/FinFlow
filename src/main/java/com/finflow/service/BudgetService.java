@@ -10,6 +10,7 @@ import com.finflow.exception.ResourceNotFoundException;
 import com.finflow.mapper.BudgetMapper;
 import com.finflow.repository.BudgetRepository;
 import com.finflow.repository.TransactionRepository;
+import com.finflow.util.Categories;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -111,7 +112,7 @@ public class BudgetService {
         return transactionRepository.sumAmountByUserAndTypeAndCategoryAndDateRange(
                 user.getId(),
                 TransactionType.EXPENSE,
-                category.toUpperCase(),
+                Categories.normalize(category),
                 month.atDay(1),
                 month.atEndOfMonth()
         );

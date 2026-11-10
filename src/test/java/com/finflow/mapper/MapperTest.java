@@ -81,7 +81,7 @@ class MapperTest {
     @Test
     @DisplayName("BudgetMapper.toEntity should parse the month and upper-case the category")
     void budgetToEntity() {
-        BudgetRequest request = new BudgetRequest("groceries", new BigDecimal("5000.00"), "2026-11");
+        BudgetRequest request = new BudgetRequest("  groceries ", new BigDecimal("5000.00"), "2026-11");
 
         Budget budget = budgetMapper.toEntity(request, user);
 
