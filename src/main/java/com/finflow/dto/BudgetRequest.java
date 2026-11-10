@@ -1,5 +1,6 @@
 package com.finflow.dto;
 
+import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -17,8 +18,8 @@ public record BudgetRequest(
         String category,
 
         @NotNull(message = "Monthly limit is required")
-        
         @Positive(message = "Monthly limit must be positive")
+        @Digits(integer = 17, fraction = 2, message = "Monthly limit can have at most 17 integer digits and 2 decimal places")
         BigDecimal monthlyLimit,
 
         @NotBlank(message = "Month is required (format: YYYY-MM)")
