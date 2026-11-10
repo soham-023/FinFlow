@@ -18,7 +18,6 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -32,161 +31,95 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleResourceNotFound(ResourceNotFoundException ex) {
-        ErrorResponse error = new ErrorResponse(
-                HttpStatus.NOT_FOUND.value(),
-                ex.getMessage(),
-                LocalDateTime.now(),
-                null
-        );
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+        return build(HttpStatus.NOT_FOUND, ex.getMessage());
     }
 
     @ExceptionHandler(DuplicateResourceException.class)
     public ResponseEntity<ErrorResponse> handleDuplicateResource(DuplicateResourceException ex) {
-        
-        ErrorResponse error = new ErrorResponse(
-                HttpStatus.CONFLICT.value(),
-            
-                ex.getMessage(),
-                LocalDateTime.now(),
-                null
-        );
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+        return build(HttpStatus.CONFLICT, ex.getMessage());
     }
 
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ErrorResponse> handleAccessDenied(AccessDeniedException ex) {
-        ErrorResponse error = new ErrorResponse(
-                HttpStatus.FORBIDDEN.value(),
-                "You do not have permission to access this resource",
-                LocalDateTime.now(),
-                null
-        );
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
+        return build(HttpStatus.FORBIDDEN, "You do not have permission to access this resource");
     }
 
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<ErrorResponse> handleAuthentication(AuthenticationException ex) {
-        ErrorResponse error = new ErrorResponse(
-                HttpStatus.UNAUTHORIZED.value(),
-                "Invalid email or password",
-                LocalDateTime.now(),
-                null
-        );
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+        return build(HttpStatus.UNAUTHORIZED, "Invalid email or password");
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidationErrors(MethodArgumentNotValidException ex) {
         Map<String, String> fieldErrors = new HashMap<>();
-        
         ex.getBindingResult().getFieldErrors().forEach(error ->
                 fieldErrors.put(error.getField(), error.getDefaultMessage())
         );
-
-        ErrorResponse errorResponse = new ErrorResponse(
-                HttpStatus.BAD_REQUEST.value(),
-                "Validation failed",
-                LocalDateTime.now(),
-                fieldErrors
-        );
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        return build(HttpStatus.BAD_REQUEST, "Validation failed", fieldErrors);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleIllegalArgument(IllegalArgumentException ex) {
-        ErrorResponse error = new ErrorResponse(
-                HttpStatus.BAD_REQUEST.value(),
-                ex.getMessage(),
-            
-                LocalDateTime.now(),
-            
-                null
-        );
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+        return build(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 
     @ExceptionHandler(DateTimeParseException.class)
     public ResponseEntity<ErrorResponse> handleDateTimeParse(DateTimeParseException ex) {
-        ErrorResponse error = new ErrorResponse(
-                HttpStatus.BAD_REQUEST.value(),
-                "Invalid date value '" + ex.getParsedString() + "'. Expected format YYYY-MM for months or YYYY-MM-DD for dates",
-                LocalDateTime.now(),
-                null
-        );
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+        return build(HttpStatus.BAD_REQUEST,
+                "Invalid date value '" + ex.getParsedString() + "'. Expected format YYYY-MM for months or YYYY-MM-DD for dates");
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ErrorResponse> handleUnreadableBody(HttpMessageNotReadableException ex) {
         // Malformed JSON, a missing body, or a value Jackson cannot convert (e.g. an unknown enum constant)
-        ErrorResponse error = new ErrorResponse(
-                HttpStatus.BAD_REQUEST.value(),
-                "Malformed request body. Check the JSON syntax and field types",
-                LocalDateTime.now(),
-                null
-        );
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+        return build(HttpStatus.BAD_REQUEST, "Malformed request body. Check the JSON syntax and field types");
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ErrorResponse> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
-        ErrorResponse error = new ErrorResponse(
-                HttpStatus.BAD_REQUEST.value(),
-                "Invalid value '" + ex.getValue() + "' for parameter '" + ex.getName() + "'",
-                LocalDateTime.now(),
-                null
-        );
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+        return build(HttpStatus.BAD_REQUEST,
+                "Invalid value '" + ex.getValue() + "' for parameter '" + ex.getName() + "'");
     }
 
     @ExceptionHandler(NoResourceFoundException.class)
     public ResponseEntity<ErrorResponse> handleNoResource(NoResourceFoundException ex) {
-        ErrorResponse error = new ErrorResponse(
-                HttpStatus.NOT_FOUND.value(),
-                "No endpoint found for " + ex.getHttpMethod() + " /" + ex.getResourcePath(),
-                LocalDateTime.now(),
-                null
-        );
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+        return build(HttpStatus.NOT_FOUND,
+                "No endpoint found for " + ex.getHttpMethod() + " /" + ex.getResourcePath());
     }
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     public ResponseEntity<ErrorResponse> handleMethodNotSupported(HttpRequestMethodNotSupportedException ex) {
-        ErrorResponse error = new ErrorResponse(
-                HttpStatus.METHOD_NOT_ALLOWED.value(),
-                "HTTP method " + ex.getMethod() + " is not supported for this endpoint",
-                LocalDateTime.now(),
-                null
-        );
+        HttpMethod[] allowed = ex.getSupportedHttpMethods() != null
+                ? ex.getSupportedHttpMethods().toArray(new HttpMethod[0])
+                : new HttpMethod[0];
         return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
-                .allow(ex.getSupportedHttpMethods() != null
-                        ? ex.getSupportedHttpMethods().toArray(new HttpMethod[0])
-                        : new HttpMethod[0])
-                .body(error);
+                .allow(allowed)
+                .body(body(HttpStatus.METHOD_NOT_ALLOWED,
+                        "HTTP method " + ex.getMethod() + " is not supported for this endpoint", null));
     }
 
     @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
     public ResponseEntity<ErrorResponse> handleMediaTypeNotSupported(HttpMediaTypeNotSupportedException ex) {
-        ErrorResponse error = new ErrorResponse(
-                HttpStatus.UNSUPPORTED_MEDIA_TYPE.value(),
-                "Content type '" + ex.getContentType() + "' is not supported. Use application/json",
-                LocalDateTime.now(),
-                null
-        );
-        return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE).body(error);
+        return build(HttpStatus.UNSUPPORTED_MEDIA_TYPE,
+                "Content type '" + ex.getContentType() + "' is not supported. Use application/json");
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
         // Log the full stack trace server-side, but never leak internal details to the client
         log.error("Unhandled exception", ex);
-        ErrorResponse error = new ErrorResponse(
-                HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                "An unexpected error occurred",
-                LocalDateTime.now(),
-                null
-        );
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+        return build(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred");
+    }
+
+    private static ResponseEntity<ErrorResponse> build(HttpStatus status, String message) {
+        return build(status, message, null);
+    }
+
+    private static ResponseEntity<ErrorResponse> build(HttpStatus status, String message, Map<String, String> errors) {
+        return ResponseEntity.status(status).body(body(status, message, errors));
+    }
+
+    private static ErrorResponse body(HttpStatus status, String message, Map<String, String> errors) {
+        return new ErrorResponse(status.value(), message, LocalDateTime.now(), errors);
     }
 }
