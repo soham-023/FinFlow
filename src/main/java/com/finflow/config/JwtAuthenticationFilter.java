@@ -13,6 +13,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 
@@ -27,10 +28,11 @@ import java.io.IOException;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     
 
+    private static final AntPathMatcher PATH_MATCHER = new AntPathMatcher();
+
     private final JwtService jwtService;
-    
+
     private final UserRepository userRepository;
-    
 
     public JwtAuthenticationFilter(JwtService jwtService, UserRepository userRepository) {
         this.jwtService = jwtService;
@@ -48,16 +50,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     ) throws ServletException, IOException {
         
 
-        final String authHeader = request.getHeader("Authorization");
-        
+        final String authHeader = request.getHeader(SecurityConstants.AUTHORIZATION_HEADER);
 
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+        if (authHeader == null || !authHeader.startsWith(SecurityConstants.BEARER_PREFIX)) {
             filterChain.doFilter(request, response);
-            
             return;
         }
 
-        final String jwt = authHeader.substring(7);
+        final String jwt = authHeader.substring(SecurityConstants.BEARER_PREFIX.length());
         
         try {
             final String userEmail = jwtService.extractUsername(jwt);
@@ -88,17 +88,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getServletPath();
-        return path.equals("/")
-                || path.equals("/index.html")
-                || path.equals("/favicon.ico")
-                || path.startsWith("/css/")
-                || path.startsWith("/js/")
-                || path.startsWith("/images/")
-                || path.startsWith("/api/auth/")
-                || path.startsWith("/swagger-ui/")
-                || path.startsWith("/v3/api-docs")
-                || path.equals("/swagger-ui.html")
-                || path.startsWith("/swagger-resources")
-                || path.startsWith("/webjars");
+        for (String pattern : SecurityConstants.PUBLIC_PATHS) {
+            if (PATH_MATCHER.match(pattern, path)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

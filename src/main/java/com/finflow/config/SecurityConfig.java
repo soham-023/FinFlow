@@ -55,23 +55,7 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                                       
-                        .requestMatchers(
-                                "/",
-                                "/index.html",
-                                "/favicon.ico",
-                                "/css/**",
-                                "/js/**",
-                                "/images/**",
-                                "/api/auth/**",
-                                "/swagger-ui/**",
-                            
-                                "/swagger-ui.html",
-                                "/v3/api-docs",
-                                "/v3/api-docs/**",
-                                "/swagger-resources/**",
-                                "/webjars/**"
-                        ).permitAll()
+                        .requestMatchers(SecurityConstants.PUBLIC_PATHS).permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session ->
