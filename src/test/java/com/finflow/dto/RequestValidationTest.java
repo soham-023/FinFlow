@@ -68,6 +68,39 @@ class RequestValidationTest {
     }
 
     @Test
+    @DisplayName("Descriptions longer than the 255-character column should be rejected")
+    void transactionDescriptionLength() {
+        TransactionRequest request = new TransactionRequest(new BigDecimal("1.00"), TransactionType.EXPENSE, "FOOD",
+                "x".repeat(256), LocalDate.of(2026, 10, 22));
+        assertThat(invalidFields(request)).containsExactly("description");
+    }
+
+    @Test
+    @DisplayName("Categories longer than 50 characters should be rejected")
+    void categoryLength() {
+        TransactionRequest request = new TransactionRequest(new BigDecimal("1.00"), TransactionType.EXPENSE,
+                "C".repeat(51), null, LocalDate.of(2026, 10, 22));
+        assertThat(invalidFields(request)).containsExactly("category");
+        assertThat(invalidFields(new BudgetRequest("C".repeat(51), BigDecimal.TEN, "2026-10")))
+                .containsExactly("category");
+    }
+
+    @Test
+    @DisplayName("Passwords longer than BCrypt's 72-byte limit should be rejected")
+    void registerPasswordLength() {
+        assertThat(invalidFields(new RegisterRequest("Alex", "alex@example.com", "p".repeat(73))))
+                .containsExactly("password");
+        assertThat(invalidFields(new RegisterRequest("Alex", "alex@example.com", "p".repeat(72)))).isEmpty();
+    }
+
+    @Test
+    @DisplayName("Names longer than 100 characters should be rejected")
+    void registerNameLength() {
+        assertThat(invalidFields(new RegisterRequest("n".repeat(101), "alex@example.com", "password123")))
+                .containsExactly("name");
+    }
+
+    @Test
     @DisplayName("Budget limits with more than 2 decimal places should be rejected")
     void budgetLimitScale() {
         BudgetRequest request = new BudgetRequest("FOOD", new BigDecimal("99.999"), "2026-10");

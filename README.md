@@ -98,6 +98,8 @@ Settings live in `src/main/resources/application.yml` and can be overridden with
 
 - `amount` (transactions) and `monthlyLimit` (budgets) must be positive, with at most 2 decimal places and 17 integer digits (stored as `NUMERIC(19,2)`).
 - `month` on budgets must be `YYYY-MM`.
+- `category` is at most 50 characters (stored trimmed and upper-cased); transaction `description` is at most 255.
+- Registration: `name` at most 100 characters, `email` at most 254, `password` 6 to 72 characters (BCrypt ignores anything past 72 bytes).
 
 ### Error Responses
 
