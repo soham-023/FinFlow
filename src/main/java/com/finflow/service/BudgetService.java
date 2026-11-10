@@ -32,7 +32,6 @@ public class BudgetService {
     private final TransactionRepository transactionRepository;
 
     public BudgetService(BudgetRepository budgetRepository,
-                         
                          BudgetMapper budgetMapper,
                          TransactionRepository transactionRepository) {
         this.budgetRepository = budgetRepository;
@@ -57,35 +56,21 @@ public class BudgetService {
                 });
 
         Budget saved = budgetRepository.save(budget);
-
-        BigDecimal spent = calculateSpent(user, saved.getCategory(), saved.getMonth());
-        
-        return budgetMapper.toResponse(saved, spent);
+        return toResponse(saved, user);
     }
 
     /**
      * Get all budgets for the authenticated user with spent amounts.
      */
     public List<BudgetResponse> getAll(User user) {
-        return budgetRepository.findByUserId(user.getId()).stream()
-                .map(budget -> {
-                    BigDecimal spent = calculateSpent(user, budget.getCategory(), budget.getMonth());
-                    return budgetMapper.toResponse(budget, spent);
-                })
-                .collect(Collectors.toList());
+        return toResponses(budgetRepository.findByUserId(user.getId()), user);
     }
 
     /**
      * Get budgets for a specific month with spent amounts.
      */
     public List<BudgetResponse> getByMonth(User user, YearMonth month) {
-        return budgetRepository.findByUserIdAndMonth(user.getId(), month).stream()
-                .map(budget -> {
-                    
-                    BigDecimal spent = calculateSpent(user, budget.getCategory(), budget.getMonth());
-                    return budgetMapper.toResponse(budget, spent);
-                })
-                .collect(Collectors.toList());
+        return toResponses(budgetRepository.findByUserIdAndMonth(user.getId(), month), user);
     }
 
     /**
@@ -102,6 +87,20 @@ public class BudgetService {
         }
 
         budgetRepository.delete(budget);
+    }
+
+    private List<BudgetResponse> toResponses(List<Budget> budgets, User user) {
+        return budgets.stream()
+                .map(budget -> toResponse(budget, user))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Map a budget to its response, including how much has been spent against it so far.
+     */
+    private BudgetResponse toResponse(Budget budget, User user) {
+        BigDecimal spent = calculateSpent(user, budget.getCategory(), budget.getMonth());
+        return budgetMapper.toResponse(budget, spent);
     }
 
     /**

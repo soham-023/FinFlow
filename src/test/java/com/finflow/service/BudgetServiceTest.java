@@ -141,6 +141,22 @@ class BudgetServiceTest {
     }
 
     @Test
+    @DisplayName("Should get budgets for one month with spent amounts")
+    void shouldGetBudgetsByMonth() {
+        YearMonth october = YearMonth.of(2026, 10);
+        when(budgetRepository.findByUserIdAndMonth(1L, october)).thenReturn(List.of(budget));
+        when(transactionRepository.sumAmountByUserAndTypeAndCategoryAndDateRange(
+                1L, TransactionType.EXPENSE, "FOOD", october.atDay(1), october.atEndOfMonth()
+        )).thenReturn(new BigDecimal("200.00"));
+        when(budgetMapper.toResponse(budget, new BigDecimal("200.00"))).thenReturn(response);
+
+        List<BudgetResponse> results = budgetService.getByMonth(user, october);
+
+        assertThat(results).containsExactly(response);
+        verify(budgetRepository, never()).findByUserId(any());
+    }
+
+    @Test
     @DisplayName("Should delete budget successfully when user is the owner")
     void shouldDeleteBudget() {
         when(budgetRepository.findById(1L)).thenReturn(Optional.of(budget));
