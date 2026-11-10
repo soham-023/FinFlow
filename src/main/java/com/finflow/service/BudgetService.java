@@ -5,6 +5,7 @@ import com.finflow.dto.BudgetResponse;
 import com.finflow.entity.Budget;
 import com.finflow.entity.TransactionType;
 import com.finflow.entity.User;
+import com.finflow.exception.DuplicateResourceException;
 import com.finflow.exception.ResourceNotFoundException;
 import com.finflow.mapper.BudgetMapper;
 import com.finflow.repository.BudgetRepository;
@@ -40,12 +41,20 @@ public class BudgetService {
 
     /**
      * Create a new budget for a category and month.
+     *
+     * @throws DuplicateResourceException if the user already has a budget for that category and month
      */
     @Transactional
-    
     public BudgetResponse create(BudgetRequest request, User user) {
         Budget budget = budgetMapper.toEntity(request, user);
-        
+
+        budgetRepository.findByUserIdAndCategoryAndMonth(user.getId(), budget.getCategory(), budget.getMonth())
+                .ifPresent(existing -> {
+                    throw new DuplicateResourceException(
+                            "Budget already exists for category " + existing.getCategory()
+                                    + " in " + existing.getMonth());
+                });
+
         Budget saved = budgetRepository.save(budget);
 
         BigDecimal spent = calculateSpent(user, saved.getCategory(), saved.getMonth());

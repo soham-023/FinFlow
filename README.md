@@ -112,7 +112,7 @@ Errors share one JSON shape:
 | 401 | Wrong email or password on login |
 | 403 | Missing or invalid JWT, or accessing another user's transaction or budget |
 | 404 | Resource not found |
-| 409 | Email already registered |
+| 409 | Email already registered, or a budget already exists for that category and month |
 
 ## API Documentation
 

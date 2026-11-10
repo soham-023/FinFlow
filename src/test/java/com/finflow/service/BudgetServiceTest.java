@@ -5,6 +5,7 @@ import com.finflow.dto.BudgetResponse;
 import com.finflow.entity.Budget;
 import com.finflow.entity.TransactionType;
 import com.finflow.entity.User;
+import com.finflow.exception.DuplicateResourceException;
 import com.finflow.exception.ResourceNotFoundException;
 import com.finflow.mapper.BudgetMapper;
 import com.finflow.repository.BudgetRepository;
@@ -107,6 +108,21 @@ class BudgetServiceTest {
 
         verify(budgetRepository).save(budget);
         
+    }
+
+    @Test
+    @DisplayName("Should reject a second budget for the same category and month")
+    void shouldRejectDuplicateBudget() {
+        when(budgetMapper.toEntity(request, user)).thenReturn(budget);
+        when(budgetRepository.findByUserIdAndCategoryAndMonth(1L, "FOOD", YearMonth.of(2026, 10)))
+                .thenReturn(Optional.of(budget));
+
+        assertThatThrownBy(() -> budgetService.create(request, user))
+                .isInstanceOf(DuplicateResourceException.class)
+                .hasMessageContaining("FOOD")
+                .hasMessageContaining("2026-10");
+
+        verify(budgetRepository, never()).save(any());
     }
 
     @Test
