@@ -141,6 +141,20 @@ class TransactionServiceTest {
     }
 
     @Test
+    @DisplayName("Should filter by type and upper-cased category")
+    void shouldGetByTypeAndCategory() {
+        Pageable pageable = PageRequest.of(0, 10);
+        when(transactionRepository.findByUserIdAndTypeAndCategory(1L, TransactionType.EXPENSE, "FOOD", pageable))
+                .thenReturn(new PageImpl<>(List.of(transaction)));
+        when(transactionMapper.toResponse(transaction)).thenReturn(response);
+
+        Page<TransactionResponse> result =
+                transactionService.getByTypeAndCategory(user, TransactionType.EXPENSE, "food", pageable);
+
+        assertThat(result.getContent()).containsExactly(response);
+    }
+
+    @Test
     @DisplayName("Should delete transaction")
     void shouldDeleteTransaction() {
         when(transactionRepository.findById(1L)).thenReturn(Optional.of(transaction));

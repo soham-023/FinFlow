@@ -230,6 +230,18 @@ class TransactionControllerTest {
     }
 
     @Test
+    @DisplayName("GET /api/transactions should apply type and category filters together")
+    void shouldFilterByTypeAndCategory() throws Exception {
+        when(transactionService.getByTypeAndCategory(any(), eq(TransactionType.EXPENSE), eq("food"), any()))
+                .thenReturn(Page.empty());
+
+        mockMvc.perform(get("/api/transactions").param("type", "EXPENSE").param("category", "food"))
+                .andExpect(status().isOk());
+
+        verify(transactionService).getByTypeAndCategory(any(), eq(TransactionType.EXPENSE), eq("food"), any());
+    }
+
+    @Test
     @DisplayName("GET /api/transactions/{id} should return 200 with transaction data")
     void shouldGetTransactionById() throws Exception {
         TransactionResponse response = new TransactionResponse(

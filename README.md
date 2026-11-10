@@ -91,7 +91,7 @@ Settings live in `src/main/resources/application.yml` and can be overridden with
 
 ### Query Parameters
 
-- `GET /api/transactions` supports `page` (default `0`, must be ≥ 0), `size` (default `10`, between 1 and 100), `sortBy` (one of `transactionDate`, `amount`, `category`, `type`, `createdAt`; default `transactionDate`), `sortDir` (`asc` or `desc`, default `desc`), and an optional `type` (`INCOME` or `EXPENSE`) or `category` filter. Out-of-range values return `400 INVALID_PARAMETER`.
+- `GET /api/transactions` supports `page` (default `0`, must be ≥ 0), `size` (default `10`, between 1 and 100), `sortBy` (one of `transactionDate`, `amount`, `category`, `type`, `createdAt`; default `transactionDate`), `sortDir` (`asc` or `desc`, default `desc`), and optional `type` (`INCOME` or `EXPENSE`) and `category` filters, which can be combined. Out-of-range values return `400 INVALID_PARAMETER`.
 - `GET /api/budgets`, `GET /api/analytics/monthly` and `GET /api/analytics/categories` accept an optional `month` in `YYYY-MM` format; analytics default to the current month.
 
 ### Error Responses

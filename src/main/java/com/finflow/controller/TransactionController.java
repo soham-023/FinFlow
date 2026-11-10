@@ -50,7 +50,7 @@ public class TransactionController {
     }
 
     @GetMapping
-    @Operation(summary = "List transactions", description = "Get paginated transactions with optional type/category filter")
+    @Operation(summary = "List transactions", description = "Get paginated transactions, optionally filtered by type, category, or both")
     public ResponseEntity<Page<TransactionResponse>> getAll(
             @AuthenticationPrincipal User user,
             @RequestParam(defaultValue = "0") int page,
@@ -63,7 +63,9 @@ public class TransactionController {
         Pageable pageable = buildPageable(page, size, sortBy, sortDir);
 
         Page<TransactionResponse> result;
-        if (type != null) {
+        if (type != null && category != null) {
+            result = transactionService.getByTypeAndCategory(user, type, category, pageable);
+        } else if (type != null) {
             result = transactionService.getByType(user, type, pageable);
         } else if (category != null) {
             result = transactionService.getByCategory(user, category, pageable);

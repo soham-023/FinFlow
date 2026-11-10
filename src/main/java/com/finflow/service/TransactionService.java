@@ -71,6 +71,15 @@ public class TransactionService {
     }
 
     /**
+     * Get transactions matching both a type and a category, with pagination.
+     */
+    public Page<TransactionResponse> getByTypeAndCategory(User user, TransactionType type, String category,
+                                                          Pageable pageable) {
+        return transactionRepository.findByUserIdAndTypeAndCategory(user.getId(), type, category.toUpperCase(), pageable)
+                .map(transactionMapper::toResponse);
+    }
+
+    /**
      * Update an existing transaction, verifying ownership.
      */
     @Transactional
