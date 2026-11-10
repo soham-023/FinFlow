@@ -31,22 +31,22 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleResourceNotFound(ResourceNotFoundException ex) {
-        return build(HttpStatus.NOT_FOUND, ex.getMessage());
+        return build(HttpStatus.NOT_FOUND, ErrorCode.RESOURCE_NOT_FOUND, ex.getMessage());
     }
 
     @ExceptionHandler(DuplicateResourceException.class)
     public ResponseEntity<ErrorResponse> handleDuplicateResource(DuplicateResourceException ex) {
-        return build(HttpStatus.CONFLICT, ex.getMessage());
+        return build(HttpStatus.CONFLICT, ErrorCode.DUPLICATE_RESOURCE, ex.getMessage());
     }
 
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ErrorResponse> handleAccessDenied(AccessDeniedException ex) {
-        return build(HttpStatus.FORBIDDEN, "You do not have permission to access this resource");
+        return build(HttpStatus.FORBIDDEN, ErrorCode.ACCESS_DENIED, "You do not have permission to access this resource");
     }
 
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<ErrorResponse> handleAuthentication(AuthenticationException ex) {
-        return build(HttpStatus.UNAUTHORIZED, "Invalid email or password");
+        return build(HttpStatus.UNAUTHORIZED, ErrorCode.INVALID_CREDENTIALS, "Invalid email or password");
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -55,35 +55,35 @@ public class GlobalExceptionHandler {
         ex.getBindingResult().getFieldErrors().forEach(error ->
                 fieldErrors.put(error.getField(), error.getDefaultMessage())
         );
-        return build(HttpStatus.BAD_REQUEST, "Validation failed", fieldErrors);
+        return build(HttpStatus.BAD_REQUEST, ErrorCode.VALIDATION_FAILED, "Validation failed", fieldErrors);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleIllegalArgument(IllegalArgumentException ex) {
-        return build(HttpStatus.BAD_REQUEST, ex.getMessage());
+        return build(HttpStatus.BAD_REQUEST, ErrorCode.INVALID_PARAMETER, ex.getMessage());
     }
 
     @ExceptionHandler(DateTimeParseException.class)
     public ResponseEntity<ErrorResponse> handleDateTimeParse(DateTimeParseException ex) {
-        return build(HttpStatus.BAD_REQUEST,
+        return build(HttpStatus.BAD_REQUEST, ErrorCode.INVALID_PARAMETER,
                 "Invalid date value '" + ex.getParsedString() + "'. Expected format YYYY-MM for months or YYYY-MM-DD for dates");
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ErrorResponse> handleUnreadableBody(HttpMessageNotReadableException ex) {
         // Malformed JSON, a missing body, or a value Jackson cannot convert (e.g. an unknown enum constant)
-        return build(HttpStatus.BAD_REQUEST, "Malformed request body. Check the JSON syntax and field types");
+        return build(HttpStatus.BAD_REQUEST, ErrorCode.MALFORMED_REQUEST, "Malformed request body. Check the JSON syntax and field types");
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ErrorResponse> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
-        return build(HttpStatus.BAD_REQUEST,
+        return build(HttpStatus.BAD_REQUEST, ErrorCode.INVALID_PARAMETER,
                 "Invalid value '" + ex.getValue() + "' for parameter '" + ex.getName() + "'");
     }
 
     @ExceptionHandler(NoResourceFoundException.class)
     public ResponseEntity<ErrorResponse> handleNoResource(NoResourceFoundException ex) {
-        return build(HttpStatus.NOT_FOUND,
+        return build(HttpStatus.NOT_FOUND, ErrorCode.ENDPOINT_NOT_FOUND,
                 "No endpoint found for " + ex.getHttpMethod() + " /" + ex.getResourcePath());
     }
 
@@ -94,13 +94,13 @@ public class GlobalExceptionHandler {
                 : new HttpMethod[0];
         return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
                 .allow(allowed)
-                .body(body(HttpStatus.METHOD_NOT_ALLOWED,
+                .body(body(HttpStatus.METHOD_NOT_ALLOWED, ErrorCode.METHOD_NOT_ALLOWED,
                         "HTTP method " + ex.getMethod() + " is not supported for this endpoint", null));
     }
 
     @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
     public ResponseEntity<ErrorResponse> handleMediaTypeNotSupported(HttpMediaTypeNotSupportedException ex) {
-        return build(HttpStatus.UNSUPPORTED_MEDIA_TYPE,
+        return build(HttpStatus.UNSUPPORTED_MEDIA_TYPE, ErrorCode.UNSUPPORTED_MEDIA_TYPE,
                 "Content type '" + ex.getContentType() + "' is not supported. Use application/json");
     }
 
@@ -108,18 +108,19 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
         // Log the full stack trace server-side, but never leak internal details to the client
         log.error("Unhandled exception", ex);
-        return build(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred");
+        return build(HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR, "An unexpected error occurred");
     }
 
-    private static ResponseEntity<ErrorResponse> build(HttpStatus status, String message) {
-        return build(status, message, null);
+    private static ResponseEntity<ErrorResponse> build(HttpStatus status, ErrorCode code, String message) {
+        return build(status, code, message, null);
     }
 
-    private static ResponseEntity<ErrorResponse> build(HttpStatus status, String message, Map<String, String> errors) {
-        return ResponseEntity.status(status).body(body(status, message, errors));
+    private static ResponseEntity<ErrorResponse> build(HttpStatus status, ErrorCode code, String message,
+                                                       Map<String, String> errors) {
+        return ResponseEntity.status(status).body(body(status, code, message, errors));
     }
 
-    private static ErrorResponse body(HttpStatus status, String message, Map<String, String> errors) {
-        return new ErrorResponse(status.value(), message, LocalDateTime.now(), errors);
+    private static ErrorResponse body(HttpStatus status, ErrorCode code, String message, Map<String, String> errors) {
+        return new ErrorResponse(status.value(), code, message, LocalDateTime.now(), errors);
     }
 }

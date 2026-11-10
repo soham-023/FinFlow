@@ -100,21 +100,29 @@ Errors share one JSON shape:
 ```json
 {
   "status": 400,
+  "code": "VALIDATION_FAILED",
   "message": "Validation failed",
   "timestamp": "2026-10-22T12:00:00",
   "errors": { "amount": "Amount must be positive" }
 }
 ```
 
-| Status | When |
-|---|---|
-| 400 | Validation failure, malformed JSON body, or malformed parameter (e.g. a bad `month`) |
-| 401 | Wrong email or password on login |
-| 403 | Missing or invalid JWT, or accessing another user's transaction or budget |
-| 404 | Resource or endpoint not found |
-| 405 | HTTP method not supported by the endpoint |
-| 409 | Email already registered, or a budget already exists for that category and month |
-| 415 | Request body is not `application/json` |
+`code` is stable and meant for programmatic handling; `message` is for humans and may change.
+
+| Status | `code` | When |
+|---|---|---|
+| 400 | `VALIDATION_FAILED` | A request body field failed validation (details in `errors`) |
+| 400 | `MALFORMED_REQUEST` | The JSON body could not be parsed (syntax error, wrong type, unknown enum value) |
+| 400 | `INVALID_PARAMETER` | A query or path parameter is malformed (e.g. a bad `month`) |
+| 401 | `INVALID_CREDENTIALS` | Wrong email or password on login |
+| 403 | `ACCESS_DENIED` | Accessing another user's transaction or budget |
+| 403 | — | Missing or invalid JWT (rejected by Spring Security before reaching the API) |
+| 404 | `RESOURCE_NOT_FOUND` | Transaction or budget not found |
+| 404 | `ENDPOINT_NOT_FOUND` | No endpoint at that path |
+| 405 | `METHOD_NOT_ALLOWED` | HTTP method not supported by the endpoint |
+| 409 | `DUPLICATE_RESOURCE` | Email already registered, or a budget already exists for that category and month |
+| 415 | `UNSUPPORTED_MEDIA_TYPE` | Request body is not `application/json` |
+| 500 | `INTERNAL_ERROR` | Unexpected server error (details are logged, not returned) |
 
 ## API Documentation
 

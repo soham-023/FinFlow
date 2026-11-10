@@ -91,6 +91,7 @@ class AuthControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("DUPLICATE_RESOURCE"))
                 .andExpect(jsonPath("$.message").value("Email already registered: alex@example.com"));
         
     }
@@ -125,6 +126,7 @@ class AuthControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("INVALID_CREDENTIALS"))
                 .andExpect(jsonPath("$.message").value("Invalid email or password"));
     }
 }

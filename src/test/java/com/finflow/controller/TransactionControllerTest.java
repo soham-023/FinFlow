@@ -135,6 +135,7 @@ class TransactionControllerTest {
                         
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
                 .andExpect(jsonPath("$.errors.amount").exists());
     }
 
@@ -145,6 +146,7 @@ class TransactionControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"amount\": 10, "))
                 .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("MALFORMED_REQUEST"))
                 .andExpect(jsonPath("$.status").value(400));
     }
 
@@ -165,7 +167,8 @@ class TransactionControllerTest {
     void shouldReturnMethodNotAllowed() throws Exception {
         mockMvc.perform(patch("/api/transactions/1"))
                 .andExpect(status().isMethodNotAllowed())
-                .andExpect(jsonPath("$.status").value(405));
+                .andExpect(jsonPath("$.status").value(405))
+                .andExpect(jsonPath("$.code").value("METHOD_NOT_ALLOWED"));
     }
 
     @Test
@@ -183,7 +186,8 @@ class TransactionControllerTest {
     void shouldReturnNotFoundForUnknownRoute() throws Exception {
         mockMvc.perform(get("/api/does-not-exist"))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.status").value(404));
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.code").value("ENDPOINT_NOT_FOUND"));
     }
 
     @Test
