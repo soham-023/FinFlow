@@ -108,7 +108,7 @@ Errors share one JSON shape:
 
 | Status | When |
 |---|---|
-| 400 | Validation failure or malformed parameter (e.g. a bad `month`) |
+| 400 | Validation failure, malformed JSON body, or malformed parameter (e.g. a bad `month`) |
 | 401 | Wrong email or password on login |
 | 403 | Missing or invalid JWT, or accessing another user's transaction or budget |
 | 404 | Resource not found |

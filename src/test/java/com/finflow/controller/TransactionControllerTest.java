@@ -139,6 +139,28 @@ class TransactionControllerTest {
     }
 
     @Test
+    @DisplayName("POST /api/transactions should return 400 for malformed JSON")
+    void shouldRejectMalformedJson() throws Exception {
+        mockMvc.perform(post("/api/transactions")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"amount\": 10, "))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400));
+    }
+
+    @Test
+    @DisplayName("POST /api/transactions should return 400 for an unknown transaction type")
+    void shouldRejectUnknownTransactionType() throws Exception {
+        String body = "{\"amount\":10,\"type\":\"REFUND\",\"category\":\"FOOD\",\"transactionDate\":\"2026-10-22\"}";
+
+        mockMvc.perform(post("/api/transactions")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Malformed request body. Check the JSON syntax and field types"));
+    }
+
+    @Test
     @DisplayName("GET /api/transactions/{id} should return 200 with transaction data")
     void shouldGetTransactionById() throws Exception {
         TransactionResponse response = new TransactionResponse(
