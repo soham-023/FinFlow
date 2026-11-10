@@ -115,8 +115,8 @@ Errors share one JSON shape:
 | 400 | `MALFORMED_REQUEST` | The JSON body could not be parsed (syntax error, wrong type, unknown enum value) |
 | 400 | `INVALID_PARAMETER` | A query or path parameter is malformed (e.g. a bad `month`) |
 | 401 | `INVALID_CREDENTIALS` | Wrong email or password on login |
+| 401 | `UNAUTHENTICATED` | Missing, invalid or expired JWT on a protected endpoint |
 | 403 | `ACCESS_DENIED` | Accessing another user's transaction or budget |
-| 403 | — | Missing or invalid JWT (rejected by Spring Security before reaching the API) |
 | 404 | `RESOURCE_NOT_FOUND` | Transaction or budget not found |
 | 404 | `ENDPOINT_NOT_FOUND` | No endpoint at that path |
 | 405 | `METHOD_NOT_ALLOWED` | HTTP method not supported by the endpoint |
