@@ -13,6 +13,11 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Tests for JwtService, the JWT filter's public paths, the security filter chain, BudgetController,
   AnalyticsController, request validation, mappers and the YearMonth converter.
 
+### Fixed
+- Accounts registered before email normalization (stored as e.g. `Alex@Example.com`) could no longer
+  log in. A startup data fix (`EmailCaseMigration`) rewrites their emails to trimmed lower case; accounts
+  that would collide with an existing lower-case address are left unchanged and logged for manual review.
+
 ### Changed
 - Missing, invalid or expired JWTs now get a JSON `401 UNAUTHENTICATED` instead of an empty `403`.
 - Failed logins return `401` instead of `500`.
