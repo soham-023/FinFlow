@@ -19,6 +19,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   that would collide with an existing lower-case address are left unchanged and logged for manual review.
 
 ### Changed
+- Reading, updating or deleting another user's transaction or budget now returns `404 RESOURCE_NOT_FOUND`
+  (same as a missing id) instead of `403`, so ids belonging to other users cannot be probed.
 - Missing, invalid or expired JWTs now get a JSON `401 UNAUTHENTICATED` instead of an empty `403`.
 - Failed logins return `401` instead of `500`.
 - Emails are trimmed and lower-cased on registration and login, so addresses differing only in case map to one account.

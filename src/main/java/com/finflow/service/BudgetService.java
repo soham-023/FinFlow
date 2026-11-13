@@ -11,7 +11,6 @@ import com.finflow.mapper.BudgetMapper;
 import com.finflow.repository.BudgetRepository;
 import com.finflow.repository.TransactionRepository;
 import com.finflow.util.Categories;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -75,17 +74,14 @@ public class BudgetService {
     }
 
     /**
-     * Delete a budget, verifying ownership.
+     * Delete a budget owned by the user. Another user's budget is reported as not found (404),
+     * so budget ids cannot be probed.
      */
     @Transactional
     public void delete(Long id, User user) {
         Budget budget = budgetRepository.findById(id)
+                .filter(b -> b.getUser().getId().equals(user.getId()))
                 .orElseThrow(() -> new ResourceNotFoundException("Budget not found with id: " + id));
-        
-
-        if (!budget.getUser().getId().equals(user.getId())) {
-            throw new AccessDeniedException("You do not have permission to delete this budget");
-        }
 
         budgetRepository.delete(budget);
     }

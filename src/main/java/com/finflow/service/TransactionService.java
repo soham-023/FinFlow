@@ -11,7 +11,6 @@ import com.finflow.repository.TransactionRepository;
 import com.finflow.util.Categories;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -111,16 +110,14 @@ public class TransactionService {
     }
 
     /**
-     * Find a transaction and verify it belongs to the given user.
+     * Find a transaction that belongs to the given user.
+     * <p>
+     * Another user's transaction is reported exactly like a missing one (404), so the API
+     * does not reveal which ids exist to users who could otherwise enumerate them.
      */
     private Transaction findAndVerifyOwnership(Long id, User user) {
-        Transaction transaction = transactionRepository.findById(id)
+        return transactionRepository.findById(id)
+                .filter(transaction -> transaction.getUser().getId().equals(user.getId()))
                 .orElseThrow(() -> new ResourceNotFoundException("Transaction not found with id: " + id));
-
-        if (!transaction.getUser().getId().equals(user.getId())) {
-            throw new AccessDeniedException("You do not have permission to access this transaction");
-        }
-
-        return transaction;
     }
 }

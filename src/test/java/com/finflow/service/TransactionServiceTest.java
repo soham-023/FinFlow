@@ -126,6 +126,26 @@ class TransactionServiceTest {
     }
 
     @Test
+    @DisplayName("Another user's transaction is reported as not found, for read, update and delete")
+    void shouldHideOtherUsersTransaction() {
+        User otherUser = User.builder().id(99L).email("other@example.com").build();
+        when(transactionRepository.findById(1L)).thenReturn(Optional.of(transaction));
+        TransactionRequest updateRequest = new TransactionRequest(
+                new BigDecimal("1.00"), TransactionType.EXPENSE, "FOOD", "x", LocalDate.of(2026, 10, 22));
+
+        assertThatThrownBy(() -> transactionService.getById(1L, otherUser))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessage("Transaction not found with id: 1");
+        assertThatThrownBy(() -> transactionService.update(1L, updateRequest, otherUser))
+                .isInstanceOf(ResourceNotFoundException.class);
+        assertThatThrownBy(() -> transactionService.delete(1L, otherUser))
+                .isInstanceOf(ResourceNotFoundException.class);
+
+        verify(transactionRepository, never()).save(any());
+        verify(transactionRepository, never()).delete(any());
+    }
+
+    @Test
     @DisplayName("Should get paginated transactions")
     void shouldGetPaginatedTransactions() {
         Pageable pageable = PageRequest.of(0, 10);

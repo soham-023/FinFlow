@@ -18,7 +18,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import org.springframework.security.access.AccessDeniedException;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -167,13 +166,14 @@ class BudgetServiceTest {
     }
 
     @Test
-    @DisplayName("Should throw AccessDeniedException when deleting someone else's budget")
+    @DisplayName("Deleting someone else's budget looks exactly like deleting a missing one")
     void shouldThrowWhenDeletingOtherUsersBudget() {
         User otherUser = User.builder().id(99L).email("other@example.com").build();
         when(budgetRepository.findById(1L)).thenReturn(Optional.of(budget));
 
         assertThatThrownBy(() -> budgetService.delete(1L, otherUser))
-                .isInstanceOf(AccessDeniedException.class);
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessage("Budget not found with id: 1");
 
         verify(budgetRepository, never()).delete(any());
     }
