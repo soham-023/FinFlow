@@ -116,11 +116,14 @@ class AuthControllerTest {
 
     @Test
     @DisplayName("POST /api/auth/login with wrong credentials should return 401")
+    
     void shouldReturnUnauthorizedOnBadCredentials() throws Exception {
         AuthRequest request = new AuthRequest("alex@example.com", "wrong-password");
+        
 
         when(authService.login(any(AuthRequest.class)))
                 .thenThrow(new BadCredentialsException("Bad credentials"));
+        
 
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
