@@ -19,6 +19,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   that would collide with an existing lower-case address are left unchanged and logged for manual review.
 
 ### Changed
+- The app refuses to start if `JWT_SECRET` is empty, not Base64, or shorter than 256 bits, or if
+  `JWT_EXPIRATION` is not positive; previously this surfaced as a 500 on the first login.
 - Reading, updating or deleting another user's transaction or budget now returns `404 RESOURCE_NOT_FOUND`
   (same as a missing id) instead of `403`, so ids belonging to other users cannot be probed.
 - Missing, invalid or expired JWTs now get a JSON `401 UNAUTHENTICATED` instead of an empty `403`.

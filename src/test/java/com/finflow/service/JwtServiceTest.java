@@ -80,6 +80,35 @@ class JwtServiceTest {
     }
 
     @Test
+    @DisplayName("Startup validation accepts the configured test secret")
+    void shouldAcceptValidConfiguration() {
+        jwtService.validateConfiguration();
+    }
+
+    @Test
+    @DisplayName("Startup validation rejects a missing, non-Base64 or too-short secret")
+    void shouldRejectBadSecretAtStartup() {
+        assertThatThrownBy(() -> newService("", 60_000).validateConfiguration())
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("not set");
+        assertThatThrownBy(() -> newService("not base64 !!", 60_000).validateConfiguration())
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("Base64");
+        // "c2hvcnQ=" is Base64 for "short": 5 bytes
+        assertThatThrownBy(() -> newService("c2hvcnQ=", 60_000).validateConfiguration())
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("256 bits");
+    }
+
+    @Test
+    @DisplayName("Startup validation rejects a non-positive expiration")
+    void shouldRejectNonPositiveExpiration() {
+        assertThatThrownBy(() -> newService(SECRET, 0).validateConfiguration())
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("must be positive");
+    }
+
+    @Test
     @DisplayName("Token signed with another key should be rejected")
     void shouldRejectForeignSignature() {
         String token = newService(OTHER_SECRET, 60_000).generateToken(alex);

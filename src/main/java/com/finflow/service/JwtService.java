@@ -2,7 +2,10 @@ package com.finflow.service;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.io.DecodingException;
 import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.security.WeakKeyException;
+import jakarta.annotation.PostConstruct;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -25,8 +28,29 @@ public class JwtService {
 
     @Value("${jwt.expiration}")
     private long jwtExpiration;
-    
-    
+
+    /**
+     * Fails startup if {@code jwt.secret} cannot sign tokens. Without this check a bad
+     * secret only surfaces on the first register or login, as a 500.
+     */
+    @PostConstruct
+    void validateConfiguration() {
+        if (secretKey == null || secretKey.isBlank()) {
+            throw new IllegalStateException("jwt.secret (JWT_SECRET) is not set");
+        }
+        try {
+            getSigningKey();
+        } catch (DecodingException e) {
+            throw new IllegalStateException("jwt.secret (JWT_SECRET) must be Base64-encoded", e);
+        } catch (WeakKeyException e) {
+            throw new IllegalStateException(
+                    "jwt.secret (JWT_SECRET) must decode to at least 256 bits (32 bytes) for HS256", e);
+        }
+        if (jwtExpiration <= 0) {
+            throw new IllegalStateException("jwt.expiration (JWT_EXPIRATION) must be positive, was " + jwtExpiration);
+        }
+    }
+
 
     public String extractUsername(String token) {
         
