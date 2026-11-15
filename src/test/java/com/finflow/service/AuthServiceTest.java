@@ -88,6 +88,7 @@ class AuthServiceTest {
         RegisterRequest request = new RegisterRequest("  Alex Smith ", "  Alex@Example.COM ", "password123");
 
         when(userRepository.existsByEmail("alex@example.com")).thenReturn(false);
+        
         when(passwordEncoder.encode("password123")).thenReturn("encodedPassword");
         when(jwtService.generateToken(any(User.class))).thenReturn("mock-jwt-token");
 
@@ -108,6 +109,7 @@ class AuthServiceTest {
 
         assertThatThrownBy(() -> authService.register(request))
                 .isInstanceOf(DuplicateResourceException.class)
+            
                 .hasMessageContaining("Email already registered");
 
         verify(userRepository, never()).save(any(User.class));
@@ -143,6 +145,7 @@ class AuthServiceTest {
         AuthResponse response = authService.login(request);
 
         assertThat(response.token()).isEqualTo("mock-jwt-token");
+        
         verify(authenticationManager).authenticate(
                 new UsernamePasswordAuthenticationToken("alex@example.com", "password123")
         );
@@ -152,6 +155,7 @@ class AuthServiceTest {
     @DisplayName("Should throw exception when login credentials are invalid")
     void shouldThrowWhenInvalidCredentials() {
         AuthRequest request = new AuthRequest("alex@example.com", "wrongPassword");
+        
 
         when(authenticationManager.authenticate(any()))
                 .thenThrow(new BadCredentialsException("Bad credentials"));
