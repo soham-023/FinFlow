@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -31,6 +32,7 @@ class AuthServiceTest {
 
     @Mock
     private UserRepository userRepository;
+    
 
     @Mock
     private PasswordEncoder passwordEncoder;
@@ -53,6 +55,7 @@ class AuthServiceTest {
                 .name("Alex Smith")
                 .email("alex@example.com")
                 .passwordHash("encodedPassword")
+            
                 .createdAt(LocalDateTime.now())
                 .build();
     }
@@ -65,6 +68,7 @@ class AuthServiceTest {
         when(userRepository.existsByEmail("alex@example.com")).thenReturn(false);
         when(passwordEncoder.encode("password123")).thenReturn("encodedPassword");
         when(userRepository.save(any(User.class))).thenReturn(user);
+        
         when(jwtService.generateToken(any(User.class))).thenReturn("mock-jwt-token");
 
         AuthResponse response = authService.register(request);
@@ -72,6 +76,7 @@ class AuthServiceTest {
         assertThat(response).isNotNull();
         assertThat(response.token()).isEqualTo("mock-jwt-token");
         assertThat(response.email()).isEqualTo("alex@example.com");
+        
         assertThat(response.name()).isEqualTo("Alex Smith");
 
         verify(userRepository).save(any(User.class));
@@ -89,6 +94,7 @@ class AuthServiceTest {
         AuthResponse response = authService.register(request);
 
         assertThat(response.email()).isEqualTo("alex@example.com");
+        
         assertThat(response.name()).isEqualTo("Alex Smith");
         verify(userRepository).existsByEmail("alex@example.com");
     }
