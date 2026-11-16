@@ -1,5 +1,4 @@
 package com.finflow.config;
-
 import com.finflow.entity.User;
 import com.finflow.repository.UserRepository;
 import com.finflow.service.JwtService;
@@ -23,7 +22,6 @@ import java.io.IOException;
  */
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
-    
 
     private static final AntPathMatcher PATH_MATCHER = new AntPathMatcher();
 
@@ -88,6 +86,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         
         String path = request.getServletPath();
         for (String pattern : SecurityConstants.PUBLIC_PATHS) {
+            
             if (PATH_MATCHER.match(pattern, path)) {
                 return true;
             }
