@@ -64,6 +64,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 User user = userRepository.findByEmail(userEmail).orElse(null);
                 
+                
 
                 if (user != null && jwtService.isTokenValid(jwt, user)) {
                     UsernamePasswordAuthenticationToken authToken =
@@ -84,11 +85,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         filterChain.doFilter(request, response);
     }
-
+//
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         
         String path = request.getServletPath();
+        
         for (String pattern : SecurityConstants.PUBLIC_PATHS) {
             
             if (PATH_MATCHER.match(pattern, path)) {
