@@ -45,8 +45,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
             @Param("type") TransactionType type,
         
             @Param("startDate") LocalDate startDate,
-        
-        
+    
             @Param("endDate") LocalDate endDate);
 
     /**
@@ -60,10 +59,10 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
     
     BigDecimal sumAmountByUserAndTypeAndCategoryAndDateRange(
             @Param("userId") Long userId,
-            @Param("type") TransactionType type,
-        
+            @Param("type") TransactionType type,   
             @Param("category") String category,
             @Param("startDate") LocalDate startDate,
+        
             @Param("endDate") LocalDate endDate);
 
     /**
@@ -72,12 +71,14 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
      */
     @Query("SELECT t.category, SUM(t.amount) FROM Transaction t " +
            "WHERE t.user.id = :userId AND t.type = :type " +
+           
            "AND t.transactionDate BETWEEN :startDate AND :endDate " +
            "GROUP BY t.category ORDER BY SUM(t.amount) DESC")
     List<Object[]> sumAmountByCategoryAndUserAndTypeAndDateRange(
         
             @Param("userId") Long userId,
             @Param("type") TransactionType type,
+        
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate);
 }
