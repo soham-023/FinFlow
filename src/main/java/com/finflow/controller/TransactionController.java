@@ -70,6 +70,7 @@ public class TransactionController {
         if (type != null && category != null) {
             result = transactionService.getByTypeAndCategory(user, type, category, pageable);
         } else if (type != null) {
+            
             result = transactionService.getByType(user, type, pageable);
         } else if (category != null) {
             result = transactionService.getByCategory(user, category, pageable);
@@ -87,6 +88,7 @@ public class TransactionController {
             @PathVariable Long id,
         
             @AuthenticationPrincipal User user) {
+        
         TransactionResponse response = transactionService.getById(id, user);
         return ResponseEntity.ok(response);
     }
@@ -98,6 +100,7 @@ public class TransactionController {
             @RequestBody @Valid TransactionRequest request,
         
             @AuthenticationPrincipal User user) {
+        
         TransactionResponse response = transactionService.update(id, request, user);
         return ResponseEntity.ok(response);
     }
@@ -106,6 +109,7 @@ public class TransactionController {
     @Operation(summary = "Delete a transaction", description = "Delete a transaction by ID")
     public ResponseEntity<Void> delete(
             @PathVariable Long id,
+        
             @AuthenticationPrincipal User user) {
         
         transactionService.delete(id, user);
@@ -122,13 +126,16 @@ public class TransactionController {
             throw new IllegalArgumentException("Parameter 'page' must be 0 or greater");
         }
         if (size < 1 || size > MAX_PAGE_SIZE) {
+            
             throw new IllegalArgumentException("Parameter 'size' must be between 1 and " + MAX_PAGE_SIZE);
         }
         if (!SORTABLE_FIELDS.contains(sortBy)) {
+            
             throw new IllegalArgumentException("Parameter 'sortBy' must be one of " + SORTABLE_FIELDS.stream().sorted().toList());
         }
         Sort.Direction direction;
         if (sortDir.equalsIgnoreCase("asc")) {
+            
             direction = Sort.Direction.ASC;
         } else if (sortDir.equalsIgnoreCase("desc")) {
             direction = Sort.Direction.DESC;
