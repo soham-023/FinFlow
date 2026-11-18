@@ -6,6 +6,7 @@ import com.finflow.entity.TransactionType;
 import com.finflow.entity.User;
 import com.finflow.service.TransactionService;
 import io.swagger.v3.oas.annotations.Operation;
+
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
@@ -30,6 +31,7 @@ public class TransactionController {
 
     /** Largest page a client may request, to keep queries and payloads bounded. */
     static final int MAX_PAGE_SIZE = 100;
+    
 
     /** Fields clients may sort by; anything else would surface as a 500 from Spring Data. */
     static final Set<String> SORTABLE_FIELDS = Set.of("transactionDate", "amount", "category", "type", "createdAt");
@@ -44,6 +46,7 @@ public class TransactionController {
     @Operation(summary = "Add a transaction", description = "Create a new income or expense transaction")
     public ResponseEntity<TransactionResponse> create(
             @RequestBody @Valid TransactionRequest request,
+        
             @AuthenticationPrincipal User user) {
         TransactionResponse response = transactionService.create(request, user);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -56,6 +59,7 @@ public class TransactionController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "transactionDate") String sortBy,
+        
             @RequestParam(defaultValue = "desc") String sortDir,
             @RequestParam(required = false) TransactionType type,
             @RequestParam(required = false) String category) {
@@ -69,6 +73,7 @@ public class TransactionController {
             result = transactionService.getByType(user, type, pageable);
         } else if (category != null) {
             result = transactionService.getByCategory(user, category, pageable);
+            
         } else {
             result = transactionService.getAll(user, pageable);
         }
@@ -80,6 +85,7 @@ public class TransactionController {
     @Operation(summary = "Get a transaction", description = "Get a single transaction by ID")
     public ResponseEntity<TransactionResponse> getById(
             @PathVariable Long id,
+        
             @AuthenticationPrincipal User user) {
         TransactionResponse response = transactionService.getById(id, user);
         return ResponseEntity.ok(response);
@@ -90,6 +96,7 @@ public class TransactionController {
     public ResponseEntity<TransactionResponse> update(
             @PathVariable Long id,
             @RequestBody @Valid TransactionRequest request,
+        
             @AuthenticationPrincipal User user) {
         TransactionResponse response = transactionService.update(id, request, user);
         return ResponseEntity.ok(response);
@@ -100,6 +107,7 @@ public class TransactionController {
     public ResponseEntity<Void> delete(
             @PathVariable Long id,
             @AuthenticationPrincipal User user) {
+        
         transactionService.delete(id, user);
         return ResponseEntity.noContent().build();
     }
