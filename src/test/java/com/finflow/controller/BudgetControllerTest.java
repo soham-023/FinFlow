@@ -7,6 +7,7 @@ import com.finflow.repository.UserRepository;
 import com.finflow.service.BudgetService;
 import com.finflow.service.JwtService;
 import org.junit.jupiter.api.DisplayName;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -24,6 +25,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -36,6 +38,7 @@ class BudgetControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
+    
 
     @MockBean
     private BudgetService budgetService;
@@ -47,18 +50,22 @@ class BudgetControllerTest {
     private UserRepository userRepository;
 
     private final BudgetResponse food = new BudgetResponse(
+        
             1L, "FOOD", new BigDecimal("500.00"), "2026-10", new BigDecimal("200.00"), new BigDecimal("300.00"));
 
     @Test
     @DisplayName("POST /api/budgets should create a budget and return 201")
     void shouldCreateBudget() throws Exception {
+        
         when(budgetService.create(any(BudgetRequest.class), any())).thenReturn(food);
 
         mockMvc.perform(post("/api/budgets")
                         .contentType(MediaType.APPLICATION_JSON)
+                        
                         .content("{\"category\":\"food\",\"monthlyLimit\":500.00,\"month\":\"2026-10\"}"))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.category").value("FOOD"))
+            
                 .andExpect(jsonPath("$.remaining").value(300.00));
     }
 
@@ -67,9 +74,11 @@ class BudgetControllerTest {
     void shouldRejectInvalidBudget() throws Exception {
         mockMvc.perform(post("/api/budgets")
                         .contentType(MediaType.APPLICATION_JSON)
+                        
                         .content("{\"category\":\"food\",\"monthlyLimit\":0,\"month\":\"2026-13\"}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
+            
                 .andExpect(jsonPath("$.errors.month").exists())
                 .andExpect(jsonPath("$.errors.monthlyLimit").exists());
 
@@ -79,6 +88,7 @@ class BudgetControllerTest {
     @Test
     @DisplayName("POST /api/budgets should return 409 for a duplicate budget")
     void shouldReturnConflictForDuplicate() throws Exception {
+        
         when(budgetService.create(any(BudgetRequest.class), any()))
                 .thenThrow(new DuplicateResourceException("Budget already exists for category FOOD in 2026-10"));
 
