@@ -1,6 +1,7 @@
 package com.finflow.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import com.finflow.dto.TransactionRequest;
 import com.finflow.dto.TransactionResponse;
 import com.finflow.entity.TransactionType;
@@ -17,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -45,6 +47,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(TransactionController.class)
 @AutoConfigureMockMvc(addFilters = false)
+    
 class TransactionControllerTest {
 
     @Autowired
@@ -62,6 +65,7 @@ class TransactionControllerTest {
     @MockBean
     private UserRepository userRepository;
     
+    
 
     private User user;
 
@@ -70,13 +74,13 @@ class TransactionControllerTest {
         user = User.builder()
                 .id(1L)
                 .name("Alex Smith")
-            
                 .email("alex@example.com")
                 .build();
 
         UsernamePasswordAuthenticationToken auth =
             
                 new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
+        
         SecurityContextHolder.getContext().setAuthentication(auth);
         
     }
@@ -88,12 +92,15 @@ class TransactionControllerTest {
 
     @Test
     @DisplayName("POST /api/transactions should create transaction and return 201")
+    
     void shouldCreateTransaction() throws Exception {
         
         TransactionRequest request = new TransactionRequest(
+            
                 new BigDecimal("250.00"),
            
                 TransactionType.EXPENSE,
+            
                 "FOOD",
                 "Lunch with colleagues",
                 LocalDate.of(2026, 10, 22)
