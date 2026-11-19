@@ -5,6 +5,7 @@ import com.finflow.dto.MonthlySummaryResponse;
 import com.finflow.entity.TransactionType;
 import com.finflow.entity.User;
 import com.finflow.repository.TransactionRepository;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +24,7 @@ public class AnalyticsService {
     private final TransactionRepository transactionRepository;
 
     public AnalyticsService(TransactionRepository transactionRepository) {
+        
         this.transactionRepository = transactionRepository;
     }
 
@@ -34,6 +36,7 @@ public class AnalyticsService {
                 user.getId(),
                 TransactionType.INCOME,
                 month.atDay(1),
+            
                 month.atEndOfMonth()
         );
 
@@ -58,6 +61,7 @@ public class AnalyticsService {
      * Get category-wise expense breakdown for a given month.
      */
     public List<CategorySummaryResponse> getCategorySummary(User user, YearMonth month) {
+        
         List<Object[]> results = transactionRepository.sumAmountByCategoryAndUserAndTypeAndDateRange(
                 user.getId(),
                 TransactionType.EXPENSE,
@@ -66,6 +70,7 @@ public class AnalyticsService {
         );
 
         return results.stream()
+            
                 .map(row -> new CategorySummaryResponse(
                         (String) row[0],
                         (BigDecimal) row[1]
