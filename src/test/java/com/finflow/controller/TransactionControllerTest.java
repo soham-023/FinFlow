@@ -7,6 +7,7 @@ import com.finflow.dto.TransactionResponse;
 import com.finflow.entity.TransactionType;
 import com.finflow.entity.User;
 import com.finflow.repository.UserRepository;
+
 import com.finflow.service.JwtService;
 import com.finflow.service.TransactionService;
 import org.junit.jupiter.api.AfterEach;
@@ -48,6 +49,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(TransactionController.class)
 @AutoConfigureMockMvc(addFilters = false)
     
+    
 class TransactionControllerTest {
 
     @Autowired
@@ -73,6 +75,7 @@ class TransactionControllerTest {
     void setUp() {
         user = User.builder()
                 .id(1L)
+            
                 .name("Alex Smith")
                 .email("alex@example.com")
                 .build();
@@ -93,6 +96,7 @@ class TransactionControllerTest {
     @Test
     @DisplayName("POST /api/transactions should create transaction and return 201")
     
+    
     void shouldCreateTransaction() throws Exception {
         
         TransactionRequest request = new TransactionRequest(
@@ -112,6 +116,7 @@ class TransactionControllerTest {
             
                 TransactionType.EXPENSE,
                 "FOOD",
+            
                 "Lunch with colleagues",
                 LocalDate.of(2026, 10, 22),
                 LocalDateTime.now()
@@ -121,10 +126,12 @@ class TransactionControllerTest {
 
         mockMvc.perform(post("/api/transactions")
                         .contentType(MediaType.APPLICATION_JSON)
+                        
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(1L))
                 .andExpect(jsonPath("$.amount").value(250.00))
+            
                 .andExpect(jsonPath("$.category").value("FOOD"))
                 .andExpect(jsonPath("$.type").value("EXPENSE"));
     }
@@ -132,6 +139,7 @@ class TransactionControllerTest {
     @Test
     @DisplayName("POST /api/transactions should return 400 when amount is negative")
     void shouldRejectNegativeAmount() throws Exception {
+        
         TransactionRequest request = new TransactionRequest(
             
                 new BigDecimal("-50.00"),
